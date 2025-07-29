@@ -1,0 +1,171 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 220 27% 8%; /* Deep dark blue-black */
+    --foreground: 180 100% 95%; /* Bright cyan-white */
+    --card: 220 25% 12%; /* Slightly lighter dark */
+    --card-foreground: 180 100% 95%;
+    --popover: 220 25% 12%;
+    --popover-foreground: 180 100% 95%;
+    --primary: 195 100% 50%; /* Bright cyan */
+    --primary-foreground: 220 27% 8%;
+    --secondary: 270 100% 50%; /* Electric purple */
+    --secondary-foreground: 220 27% 8%;
+    --muted: 220 20% 15%;
+    --muted-foreground: 180 50% 70%;
+    --accent: 310 100% 60%; /* Hot pink/magenta */
+    --accent-foreground: 220 27% 8%;
+    --destructive: 0 100% 60%; /* Bright red */
+    --destructive-foreground: 0 0% 98%;
+    --border: 195 100% 30%; /* Dim cyan border */
+    --input: 220 25% 15%;
+    --ring: 195 100% 50%; /* Cyan ring */
+    --chart-1: 195 100% 50%; /* Cyan */
+    --chart-2: 270 100% 50%; /* Purple */
+    --chart-3: 310 100% 60%; /* Magenta */
+    --chart-4: 120 100% 50%; /* Green */
+    --chart-5: 60 100% 50%; /* Yellow */
+    --radius: 0.75rem;
+    --sidebar-background: 220 27% 8%;
+    --sidebar-foreground: 180 100% 95%;
+    --sidebar-primary: 195 100% 50%;
+    --sidebar-primary-foreground: 220 27% 8%;
+    --sidebar-accent: 220 20% 15%;
+    --sidebar-accent-foreground: 180 100% 95%;
+    --sidebar-border: 195 100% 30%;
+    --sidebar-ring: 195 100% 50%;
+    
+    /* Neon glow variables */
+    --neon-cyan: 195 100% 50%;
+    --neon-purple: 270 100% 50%;
+    --neon-pink: 310 100% 60%;
+    --neon-green: 120 100% 50%;
+  }
+  .dark {
+    --background: 220 27% 8%;
+    --foreground: 180 100% 95%;
+    --card: 220 25% 12%;
+    --card-foreground: 180 100% 95%;
+    --popover: 220 25% 12%;
+    --popover-foreground: 180 100% 95%;
+    --primary: 195 100% 50%;
+    --primary-foreground: 220 27% 8%;
+    --secondary: 270 100% 50%;
+    --secondary-foreground: 220 27% 8%;
+    --muted: 220 20% 15%;
+    --muted-foreground: 180 50% 70%;
+    --accent: 310 100% 60%;
+    --accent-foreground: 220 27% 8%;
+    --destructive: 0 100% 60%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 195 100% 30%;
+    --input: 220 25% 15%;
+    --ring: 195 100% 50%;
+    --chart-1: 195 100% 50%;
+    --chart-2: 270 100% 50%;
+    --chart-3: 310 100% 60%;
+    --chart-4: 120 100% 50%;
+    --chart-5: 60 100% 50%;
+    --sidebar-background: 220 27% 8%;
+    --sidebar-foreground: 180 100% 95%;
+    --sidebar-primary: 195 100% 50%;
+    --sidebar-primary-foreground: 220 27% 8%;
+    --sidebar-accent: 220 20% 15%;
+    --sidebar-accent-foreground: 180 100% 95%;
+    --sidebar-border: 195 100% 30%;
+    --sidebar-ring: 195 100% 50%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+    background-image: 
+      radial-gradient(circle at 20% 50%, hsl(var(--neon-cyan) / 0.1) 0%, transparent 50%),
+      radial-gradient(circle at 80% 20%, hsl(var(--neon-purple) / 0.1) 0%, transparent 50%),
+      radial-gradient(circle at 40% 80%, hsl(var(--neon-pink) / 0.1) 0%, transparent 50%);
+  }
+}
+
+@layer components {
+  /* Premium neon effects with refined styling */
+  .neon-glow {
+    box-shadow: 
+      0 0 2px hsl(var(--primary)),
+      0 0 4px hsl(var(--primary)),
+      0 0 6px hsl(var(--primary));
+  }
+  
+  .neon-text {
+    text-shadow: 
+      0 0 3px hsl(var(--primary)),
+      0 0 6px hsl(var(--primary)),
+      0 0 9px hsl(var(--primary));
+    font-weight: 500;
+    letter-spacing: 0.5px;
+  }
+  
+  .neon-border {
+    border: 1px solid hsl(var(--primary) / 0.6);
+    box-shadow: 
+      inset 0 0 6px hsl(var(--primary) / 0.1),
+      0 0 6px hsl(var(--primary) / 0.2);
+  }
+  
+  .neon-card {
+    background: hsl(var(--card) / 0.85);
+    border: 1px solid hsl(var(--border) / 0.5);
+    box-shadow: 
+      0 0 15px hsl(var(--primary) / 0.08),
+      inset 0 0 15px hsl(var(--primary) / 0.03);
+    backdrop-filter: blur(12px);
+  }
+  
+  .neon-button {
+    background: linear-gradient(135deg, hsl(var(--primary) / 0.9), hsl(var(--secondary) / 0.9));
+    border: 1px solid hsl(var(--primary) / 0.7);
+    box-shadow: 
+      0 0 6px hsl(var(--primary) / 0.2),
+      inset 0 0 6px hsl(var(--primary) / 0.05);
+    transition: all 0.2s ease;
+    font-size: 0.875rem;
+    font-weight: 500;
+    letter-spacing: 0.3px;
+  }
+  
+  .neon-button:hover {
+    box-shadow: 
+      0 0 12px hsl(var(--primary) / 0.3),
+      0 0 18px hsl(var(--primary) / 0.2),
+      inset 0 0 12px hsl(var(--primary) / 0.1);
+    transform: translateY(-1px);
+  }
+  
+  /* Premium typography */
+  .premium-text {
+    font-size: 0.8125rem;
+    font-weight: 400;
+    letter-spacing: 0.2px;
+    line-height: 1.4;
+  }
+  
+  .premium-label {
+    font-size: 0.75rem;
+    font-weight: 500;
+    letter-spacing: 0.4px;
+    text-transform: uppercase;
+  }
+  
+  .premium-title {
+    font-size: 1.125rem;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+    line-height: 1.3;
+  }
+}
