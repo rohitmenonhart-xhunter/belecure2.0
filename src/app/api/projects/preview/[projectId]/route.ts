@@ -4,12 +4,12 @@ import Project from '@/lib/models/Project';
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { projectId: string } }
+  { params }: { params: Promise<{ projectId: string }> }
 ) {
   try {
     await connectDB();
     
-    const { projectId } = params;
+    const { projectId } = await params;
     
     if (!projectId) {
       return NextResponse.json(

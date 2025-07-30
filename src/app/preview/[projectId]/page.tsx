@@ -5,6 +5,7 @@ import { useParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import Image from 'next/image';
 import { 
   Eye, 
   Lightbulb, 
@@ -16,7 +17,10 @@ import {
   Download,
   Share2,
   Copy,
-  CheckCircle2
+  CheckCircle2,
+  ArrowLeft,
+  Zap,
+  Activity
 } from 'lucide-react';
 
 // Import interfaces from lighting page
@@ -73,7 +77,386 @@ interface LightFixture {
   direction?: number;
   width?: number;
   size: number;
+  isSelected?: boolean;
+  gapDistance?: number;
+  gapUnit?: 'feet' | 'meters';
 }
+
+// Add the comprehensive LightSymbol component from lighting page
+const LightSymbol = ({ type, size = 24, ...props }: { type: LightFixture['type'], size?: number, [key: string]: any }) => {
+  const magenta = '#FF00FF';
+
+  switch (type) {
+    case 'spot-type1': {
+      return (
+        <svg {...props} viewBox="0 0 24 24">
+           <circle cx="12" cy="12" r="8" stroke={magenta} strokeWidth="1" />
+           <circle cx="12" cy="12" r="5" fill={magenta} stroke="none" />
+        </svg>
+      );
+    }
+    case 'spot-type2': {
+      return (
+        <svg {...props} viewBox="0 0 24 24">
+          <circle cx="12" cy="12" r="9" stroke={magenta} strokeWidth="4" />
+           <circle cx="12" cy="12" r="4" stroke={magenta} strokeWidth="1" />
+        </svg>
+      );
+    }
+    case 'spot-type3': {
+      return (
+        <svg {...props} viewBox="0 0 24 24">
+          <circle cx="12" cy="12" r="8" stroke={magenta} strokeWidth="4" />
+        </svg>
+      );
+    }
+    case 'spot-type4': {
+      return (
+        <svg {...props} viewBox="0 0 24 24">
+          <circle cx="12" cy="12" r="9" stroke={magenta} strokeWidth="3" />
+           <circle cx="12" cy="12" r="4" stroke={magenta} strokeWidth="1" />
+        </svg>
+      );
+    }
+    case 'spot-type5-wall-washer': {
+      return (
+        <svg {...props} viewBox="0 0 24 24">
+          <path
+            d="M12 2C6.48 2 2 6.48 2 12H22C22 6.48 17.52 2 12 2Z"
+            fill={magenta}
+          />
+          <path d="M2 12V20C2 21.1 2.9 22 4 22H20C21.1 22 22 21.1 22 20V12H2Z" fill="black" />
+        </svg>
+      );
+    }
+    case 'adjustable-spot-type6': {
+      return (
+        <svg {...props} viewBox="0 0 24 24">
+          <defs>
+            <clipPath id="adjustable-spot-clip">
+              <rect x="0" y="0" width="12" height="24" />
+            </clipPath>
+          </defs>
+          <path d="M12 2 A10 10 0 0 0 2 12 H 22 A10 10 0 0 0 12 2Z" fill={magenta} />
+          <path d="M12 2 A10 10 0 0 0 2 12 H 22 A10 10 0 0 0 12 2Z" fill="black" clipPath="url(#adjustable-spot-clip)" />
+        </svg>
+      );
+    }
+    case 'mini-spot': {
+      return (
+        <svg {...props} viewBox="0 0 24 24">
+          <circle cx="12" cy="12" r="6" stroke={magenta} strokeWidth="3" />
+           <circle cx="12" cy="12" r="2" fill={magenta} />
+        </svg>
+      );
+    }
+    case 'bed-reading-spot': {
+         return (
+           <svg {...props} viewBox="0 0 24 24">
+             <circle cx="12" cy="12" r="7" stroke={magenta} strokeWidth="3" />
+           </svg>
+         );
+    }
+    case 'waterproof-spot': {
+      return (
+        <svg {...props} viewBox="0 0 24 24">
+           <defs>
+            <pattern id="waterproof-hatch" patternUnits="userSpaceOnUse" width="4" height="4">
+              <path d="M-1,1 l2,-2 M0,4 l4,-4 M3,5 l2,-2" style={{ stroke: magenta, strokeWidth: 1 }} />
+            </pattern>
+          </defs>
+          <circle cx="12" cy="12" r="9" fill="url(#waterproof-hatch)" />
+          <circle cx="12" cy="12" r="9" stroke={magenta} strokeWidth="1.5" fill="none" />
+        </svg>
+      );
+    }
+    case 'wall-washer-spot': {
+      return (
+        <svg {...props} viewBox="0 0 24 24">
+          <path d="M12 2 A10 10 0 0 0 2 12 H22 A10 10 0 0 0 12 2Z" fill="black" />
+           <path d="M12 2 A10 10 0 0 0 2 12" stroke={magenta} strokeWidth="1.5" fill="none" />
+        </svg>
+      );
+    }
+    case 'laser-blade': {
+      return (
+        <svg {...props} viewBox="0 0 24 24">
+          <rect x="2" y="8" width="20" height="8" fill="black" stroke={magenta} strokeWidth="1" />
+          <line x1="4" y1="12" x2="20" y2="12" stroke={magenta} strokeWidth="1.5" />
+        </svg>
+      );
+    }
+    case 'linear-wall-washer': {
+         return (
+             <svg {...props} viewBox="0 0 24 24">
+                 <rect x="4" y="10" width="16" height="4" fill="black" stroke={magenta} strokeWidth="1.5" />
+             </svg>
+         );
+    }
+    case 'linear-profile-lighting': {
+      return (
+        <svg {...props} viewBox="0 0 24 24">
+          <rect x="2" y="11" width="20" height="2" fill={magenta} />
+        </svg>
+      );
+    }
+    case 'gimbel-spot': {
+      return (
+        <svg {...props} viewBox="0 0 24 24">
+          <circle cx="12" cy="12" r="8" stroke={magenta} strokeWidth="2" />
+          <circle cx="12" cy="12" r="4" fill={magenta} />
+          <line x1="4" y1="12" x2="20" y2="12" stroke={magenta} strokeWidth="1" />
+        </svg>
+      );
+    }
+    case 'surface-spot-light-indoor': {
+      return (
+        <svg {...props} viewBox="0 0 24 24">
+          <circle cx="12" cy="12" r="8" fill={magenta} />
+        </svg>
+      );
+    }
+    case 'surface-spot-light-indoor-2': {
+      return (
+        <svg {...props} viewBox="0 0 24 24">
+          <circle cx="12" cy="12" r="8" stroke={magenta} strokeWidth="2" />
+          <circle cx="12" cy="12" r="4" fill={magenta} />
+        </svg>
+      );
+    }
+    case 'downlight': {
+      return (
+        <svg {...props} viewBox="0 0 24 24">
+          <circle cx="12" cy="12" r="8" stroke={magenta} strokeWidth="1.5" />
+          <circle cx="12" cy="12" r="5" fill={magenta} />
+        </svg>
+      );
+    }
+    case 'surface-panel': {
+      return (
+        <svg {...props} viewBox="0 0 24 24">
+           <defs>
+              <clipPath id="surface-panel-clip">
+                <rect x="10" y="0" width="4" height="24" />
+              </clipPath>
+           </defs>
+          <circle cx="12" cy="12" r="9" fill={magenta} />
+           <circle cx="12" cy="12" r="9" fill={magenta} clipPath="url(#surface-panel-clip)" />
+        </svg>
+      );
+    }
+    case 'indoor-strip-light': {
+      return (
+        <svg {...props} viewBox="0 0 24 24">
+          <line x1="12" y1="4" x2="12" y2="20" stroke={magenta} strokeWidth="3" strokeDasharray="4 2" />
+        </svg>
+      );
+    }
+    case 'curtain-grazer': {
+      return (
+        <svg {...props} viewBox="0 0 24 24">
+          <line x1="12" y1="4" x2="12" y2="20" stroke={magenta} strokeWidth="3" />
+           <line x1="10" y1="4" x2="10" y2="20" stroke={magenta} strokeWidth="1" />
+           <line x1="14" y1="4" x2="14" y2="20" stroke={magenta} strokeWidth="1" />
+        </svg>
+      );
+    }
+    case 'outdoor-profile': {
+      return (
+        <svg {...props} viewBox="0 0 24 24">
+          <line x1="12" y1="4" x2="12" y2="20" stroke="red" strokeWidth="3" strokeDasharray="4 2" />
+        </svg>
+      );
+    }
+    case 'magnetic-track': {
+      return (
+        <svg {...props} viewBox="0 0 24 24">
+          <rect x="2" y="10" width="20" height="4" fill="#333" stroke="#555" strokeWidth="1" />
+        </svg>
+      );
+    }
+    case 'track-spot': {
+      return (
+        <svg {...props} viewBox="0 0 24 24">
+          <rect x="2" y="10" width="20" height="4" fill="#333" />
+          <circle cx="8" cy="12" r="3" fill={magenta} />
+          <circle cx="16" cy="12" r="3" fill={magenta} />
+        </svg>
+      );
+    }
+    case 'track-spot-2': {
+         return (
+             <svg {...props} viewBox="0 0 24 24">
+                 <rect x="2" y="10" width="20" height="4" fill="#333" />
+                 <rect x="6" y="8" width="4" height="8" fill={magenta} />
+                 <rect x="14" y="8" width="4" height="8" fill={magenta} />
+             </svg>
+         );
+    }
+    case 'magnetic-laser-blade': {
+        const darkRed = '#8B0000';
+        return (
+            <svg {...props} viewBox="0 0 24 24">
+                <rect x="2" y="8" width="20" height="8" fill={darkRed} stroke={magenta} strokeWidth="1" />
+                <line x1="4" y1="12" x2="20" y2="12" stroke={magenta} strokeWidth="1.5" />
+            </svg>
+        );
+    }
+    case 'magnetic-laser-blade-large': {
+        const darkRed = '#8B0000';
+        return (
+            <svg {...props} viewBox="0 0 24 24">
+                <rect x="1" y="7" width="22" height="10" fill={darkRed} stroke={magenta} strokeWidth="1" />
+                <line x1="3" y1="12" x2="21" y2="12" stroke={magenta} strokeWidth="2" />
+            </svg>
+        );
+    }
+    case 'magnetic-profile': {
+        const darkRed = '#8B0000';
+        return (
+            <svg {...props} viewBox="0 0 24 24">
+                <rect x="2" y="11" width="20" height="2" fill={darkRed} />
+            </svg>
+        );
+    }
+    case 'magnetic-profile-large': {
+        const darkRed = '#8B0000';
+        return (
+            <svg {...props} viewBox="0 0 24 24">
+                <rect x="1" y="10" width="22" height="5" fill={darkRed} />
+            </svg>
+        );
+    }
+    case 'laser-blade-wall-washer': {
+        const darkRed = '#8B0000';
+        return (
+            <svg {...props} viewBox="0 0 24 24">
+                <rect x="2" y="8" width="20" height="8" fill={darkRed} stroke={magenta} strokeWidth="1" />
+                <line x1="4" y1="12" x2="20" y2="12" stroke={magenta} strokeWidth="1.5" />
+            </svg>
+        );
+    }
+    case 'laser-blade-wall-washer-large': {
+        const darkRed = '#8B0000';
+        return (
+            <svg {...props} viewBox="0 0 24 24">
+                <rect x="1" y="7" width="22" height="10" fill={darkRed} stroke={magenta} strokeWidth="1" />
+                <line x1="3" y1="12" x2="21" y2="12" stroke={magenta} strokeWidth="2" />
+            </svg>
+        );
+    }
+    case 'magnetic-profile-adjustable': {
+        const darkRed = '#8B0000';
+        return (
+            <svg {...props} viewBox="0 0 24 24">
+                <path d="M4 8 L 4 18 L 20 18 L 20 8" stroke={darkRed} strokeWidth="2" fill="none" />
+                <rect x="6" y="9" width="12" height="4" fill={darkRed} />
+            </svg>
+        );
+    }
+    case 'magnetic-profile-adjustable-large': {
+        const darkRed = '#8B0000';
+        return (
+            <svg {...props} viewBox="0 0 24 24">
+                <path d="M2 7 L 2 19 L 22 19 L 22 7" stroke={darkRed} strokeWidth="2" fill="none" />
+                <rect x="4" y="9" width="16" height="5" fill={darkRed} />
+            </svg>
+        );
+    }
+    case 'stretch-ceiling': {
+        return (
+            <svg {...props} viewBox="0 0 24 24">
+                <defs>
+                    <linearGradient id="stretch-grad" x1="0%" y1="0%" x2="100%" y2="0%">
+                        <stop offset="0%" style={{stopColor: magenta, stopOpacity: 0.3}} />
+                        <stop offset="50%" style={{stopColor: magenta, stopOpacity: 1}} />
+                        <stop offset="100%" style={{stopColor: magenta, stopOpacity: 0.3}} />
+                    </linearGradient>
+                </defs>
+                <g stroke="url(#stretch-grad)" strokeWidth="1.5">
+                    <path d="M4 4 V 20 M6 4 V 20 M8 4 V 20 M10 4 V 20 M12 4 V 20 M14 4 V 20 M16 4 V 20 M18 4 V 20 M20 4 V 20" />
+                </g>
+            </svg>
+        );
+    }
+    case 'module-signage': {
+      const blue = '#4299e1';
+      return (
+          <svg {...props} viewBox="0 0 24 24">
+              <g stroke={blue} strokeWidth="1">
+                  <path d="M6 5 V 19 M9 5 V 19 M12 5 V 19 M15 5 V 19 M18 5 V 19" />
+                  <path d="M6 8 H 18 M6 12 H 18 M6 16 H 18" />
+              </g>
+          </svg>
+      );
+    }
+    case 'table-lamp': {
+      const blue = '#0000FF';
+      return (
+          <svg {...props} viewBox="0 0 24 24">
+              <path d="M6 14 A 6 6 0 0 1 18 14" stroke={blue} strokeWidth="1.5" fill="none" />
+              <rect x="7" y="14" width="10" height="4" fill={blue} />
+          </svg>
+      );
+    }
+    case 'floor-lamp': {
+      const blue = '#0000FF';
+      return (
+          <svg {...props} viewBox="0 0 24 24">
+              <path d="M8 12 A 4 4 0 0 1 16 12" stroke={blue} strokeWidth="1.5" fill="none" />
+              <rect x="9" y="12" width="6" height="3" fill={blue} />
+              <rect x="11" y="15" width="2" height="5" fill={blue} />
+          </svg>
+      );
+    }
+    case 'chandelier-2': {
+      const blue = '#0000FF';
+      return (
+          <svg {...props} viewBox="0 0 24 24">
+              <circle cx="12" cy="12" r="5" fill={blue}/>
+              {Array.from({length: 12}).map((_, i) => {
+                  const angle = (i / 12) * 2 * Math.PI;
+                  const x1 = 12 + Math.cos(angle) * 5;
+                  const y1 = 12 + Math.sin(angle) * 5;
+                  const x2 = 12 + Math.cos(angle) * 7;
+                  const y2 = 12 + Math.sin(angle) * 7;
+                  const cx2 = 12 + Math.cos(angle) * 8;
+                  const cy2 = 12 + Math.sin(angle) * 8;
+                  return (
+                      <g key={i}>
+                          <line x1={x1} y1={y1} x2={x2} y2={y2} stroke={blue} strokeWidth="0.5"/>
+                          <circle cx={cx2} cy={cy2} r="1.5" fill={blue}/>
+                      </g>
+                  );
+              })}
+          </svg>
+      );
+    }
+    case 'dining-linear-pendant': {
+      const magenta = '#FF00FF';
+      return (
+          <svg {...props} viewBox="0 0 24 24">
+              <rect x="2" y="10" width="20" height="4" stroke={magenta} strokeWidth="1" fill="none"/>
+              <rect x="3" y="11" width="18" height="2" fill={magenta}/>
+          </svg>
+      );
+    }
+    case 'hanging-light': {
+        const blue = '#0000FF';
+        return (
+            <svg {...props} viewBox="0 0 24 24">
+                <circle cx="12" cy="12" r="8" fill="white" stroke={blue} strokeWidth="1"/>
+                <path d="M12 4 L12 20 M4 12 L20 12" stroke={blue} strokeWidth="1"/>
+                <path d="M12,4 A8,8 0 0,1 20,12 L12,12Z" fill={blue}/>
+                <path d="M12,12 A8,8 0 0,1 4,12 L12,12Z" fill={blue}/>
+                <path d="M4,12 A8,8 0 0,1 12,20 L12,12Z" fill={blue}/>
+            </svg>
+        );
+    }
+    default:
+      return <Zap size={size} {...props} />;
+  }
+};
 
 interface BlueprintData {
   walls: Wall[];
@@ -235,7 +618,7 @@ export default function PreviewPage() {
     ];
 
     images.forEach(({ setter, src }) => {
-      const img = new Image();
+      const img = new window.Image();
       img.onload = () => setter(img);
       img.src = src;
     });
@@ -350,6 +733,85 @@ export default function PreviewPage() {
   const handleCanvasMouseLeave = () => {
     setHoveredLight(null);
     setMousePos(null);
+  };
+
+  const handleCanvasClick = (event: React.MouseEvent<HTMLCanvasElement>) => {
+    const canvas = canvasRef.current;
+    if (!canvas || !project) return;
+
+    const rect = canvas.getBoundingClientRect();
+    const scaleX = canvas.width / rect.width;
+    const scaleY = canvas.height / rect.height;
+    
+    const x = (event.clientX - rect.left) * scaleX;
+    const y = (event.clientY - rect.top) * scaleY;
+
+    // Calculate canvas coordinates
+    const bounds = calculateBlueprintBounds();
+    if (!bounds) return;
+
+    const padding = 100;
+    const availableWidth = canvas.width - padding * 2;
+    const availableHeight = canvas.height - padding * 2;
+    
+    const scale = Math.min(
+      availableWidth / bounds.width,
+      availableHeight / bounds.height
+    );
+
+    const offsetX = (canvas.width - bounds.width * scale) / 2 - bounds.minX * scale;
+    const offsetY = (canvas.height - bounds.height * scale) / 2 - bounds.minY * scale;
+
+    // Check if clicking on any light to toggle it
+    project.lightingData?.lights?.forEach((light, index) => {
+      const lightX = offsetX + light.x * scale;
+      const lightY = offsetY + light.y * scale;
+      const lightRadius = 4 * light.size + 10; // Same hit area as hover
+      
+      const distance = Math.sqrt((x - lightX) ** 2 + (y - lightY) ** 2);
+      if (distance <= lightRadius) {
+        // Toggle the light
+        toggleLight(light.id);
+      }
+    });
+  };
+
+  const toggleLight = async (lightId: string) => {
+    if (!project) return;
+
+    // Update local state immediately
+    const updatedProject = {
+      ...project,
+      lightingData: {
+        ...project.lightingData,
+        lights: project.lightingData.lights.map(light =>
+          light.id === lightId ? { ...light, isOn: !light.isOn } : light
+        )
+      }
+    };
+    
+    setProject(updatedProject);
+
+    // Save to database
+    try {
+      const response = await fetch('/api/projects/save', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(updatedProject),
+      });
+
+      if (!response.ok) {
+        console.error('Failed to save light toggle');
+        // Revert on error
+        setProject(project);
+      }
+    } catch (error) {
+      console.error('Error saving light toggle:', error);
+      // Revert on error
+      setProject(project);
+    }
   };
 
   const drawPreview = () => {
@@ -689,81 +1151,824 @@ export default function PreviewPage() {
     });
   };
 
+  // Helper function to check if a line intersects with any wall
+  const isLightBlockedByWall = (lightX: number, lightY: number, targetX: number, targetY: number): boolean => {
+    if (!project?.blueprintData?.walls) return false;
+
+    for (const wall of project.blueprintData.walls) {
+      // Check if the light ray intersects with this wall
+      if (lineIntersectsLine(lightX, lightY, targetX, targetY, wall.start.x, wall.start.y, wall.end.x, wall.end.y)) {
+        return true;
+      }
+    }
+    return false;
+  };
+
+  // Helper function to check line intersection
+  const lineIntersectsLine = (x1: number, y1: number, x2: number, y2: number, x3: number, y3: number, x4: number, y4: number): boolean => {
+    const denom = (x1 - x2) * (y3 - y4) - (y1 - y2) * (x3 - x4);
+    if (denom === 0) return false; // Lines are parallel
+
+    const t = ((x1 - x3) * (y3 - y4) - (y1 - y3) * (x3 - x4)) / denom;
+    const u = -((x1 - x2) * (y1 - y3) - (y1 - y2) * (x1 - x3)) / denom;
+
+    return t >= 0 && t <= 1 && u >= 0 && u <= 1;
+  };
+
+  // Helper function to check line-line intersection for wall shadows
+  const lineIntersection = (
+    line1: { start: { x: number; y: number }, end: { x: number; y: number } },
+    line2: { start: { x: number; y: number }, end: { x: number; y: number } }
+  ): { x: number; y: number } | null => {
+    const x1 = line1.start.x, y1 = line1.start.y;
+    const x2 = line1.end.x, y2 = line1.end.y;
+    const x3 = line2.start.x, y3 = line2.start.y;
+    const x4 = line2.end.x, y4 = line2.end.y;
+
+    const denom = (x1 - x2) * (y3 - y4) - (y1 - y2) * (x3 - x4);
+    if (Math.abs(denom) < 1e-10) return null; // Lines are parallel
+
+    const t = ((x1 - x3) * (y3 - y4) - (y1 - y3) * (x3 - x4)) / denom;
+    const u = -((x1 - x2) * (y1 - y3) - (y1 - y2) * (x1 - x3)) / denom;
+
+    if (t >= 0 && t <= 1 && u >= 0 && u <= 1) {
+      return {
+        x: x1 + t * (x2 - x1),
+        y: y1 + t * (y2 - y1)
+      };
+    }
+    return null;
+  };
+
+  // Function to draw light with wall shadows using ray casting (from lighting page)
+  const drawLightWithShadows = (
+    ctx: CanvasRenderingContext2D,
+    lightX: number,
+    lightY: number,
+    lightRadius: number,
+    lightColor: string,
+    lightIntensity: number,
+    offsetX: number,
+    offsetY: number,
+    scale: number
+  ) => {
+    if (!project?.blueprintData?.walls) return;
+
+    // Create gradient for the light
+    const gradient = ctx.createRadialGradient(lightX, lightY, 0, lightX, lightY, lightRadius);
+    gradient.addColorStop(0, `${lightColor}${Math.round(lightIntensity * 2.55).toString(16).padStart(2, '0')}`);
+    gradient.addColorStop(0.5, `${lightColor}${Math.round(lightIntensity * 1.28).toString(16).padStart(2, '0')}`);
+    gradient.addColorStop(1, `${lightColor}00`);
+
+    // Draw the base light circle
+    ctx.fillStyle = gradient;
+    
+    // Use ray casting to create realistic shadows
+    const rayCount = 64; // Number of rays to cast
+    const rayAngles: number[] = [];
+    
+    // Cast rays in all directions
+    for (let i = 0; i < rayCount; i++) {
+      rayAngles.push((i / rayCount) * Math.PI * 2);
+    }
+    
+    // Add rays toward wall endpoints for better shadow accuracy
+    project.blueprintData.walls.forEach(wall => {
+      const wallStartX = offsetX + wall.start.x * scale;
+      const wallStartY = offsetY + wall.start.y * scale;
+      const wallEndX = offsetX + wall.end.x * scale;
+      const wallEndY = offsetY + wall.end.y * scale;
+      
+      const angleToStart = Math.atan2(wallStartY - lightY, wallStartX - lightX);
+      const angleToEnd = Math.atan2(wallEndY - lightY, wallEndX - lightX);
+      
+      rayAngles.push(angleToStart - 0.001, angleToStart, angleToStart + 0.001);
+      rayAngles.push(angleToEnd - 0.001, angleToEnd, angleToEnd + 0.001);
+    });
+
+    // Sort angles
+    rayAngles.sort((a, b) => a - b);
+
+    // Create the light polygon by casting rays
+    ctx.beginPath();
+    ctx.moveTo(lightX, lightY);
+
+    rayAngles.forEach(angle => {
+      let rayEndX = lightX + Math.cos(angle) * lightRadius;
+      let rayEndY = lightY + Math.sin(angle) * lightRadius;
+      let minDistance = lightRadius;
+
+      // Check intersection with each wall
+      project.blueprintData.walls.forEach(wall => {
+        const wallStartX = offsetX + wall.start.x * scale;
+        const wallStartY = offsetY + wall.start.y * scale;
+        const wallEndX = offsetX + wall.end.x * scale;
+        const wallEndY = offsetY + wall.end.y * scale;
+
+        const intersection = lineIntersection(
+          { start: { x: lightX, y: lightY }, end: { x: rayEndX, y: rayEndY } },
+          { start: { x: wallStartX, y: wallStartY }, end: { x: wallEndX, y: wallEndY } }
+        );
+
+        if (intersection) {
+          const distance = Math.sqrt(
+            Math.pow(intersection.x - lightX, 2) + Math.pow(intersection.y - lightY, 2)
+          );
+          if (distance < minDistance) {
+            minDistance = distance;
+            rayEndX = intersection.x;
+            rayEndY = intersection.y;
+          }
+        }
+      });
+
+      ctx.lineTo(rayEndX, rayEndY);
+    });
+
+    ctx.closePath();
+    ctx.fill();
+  };
+
   const drawLights = (ctx: CanvasRenderingContext2D, offsetX: number, offsetY: number, scale: number) => {
     if (!project?.lightingData?.lights) return;
 
-    const time = animationEnabled ? Date.now() / 1000 : 0;
-
     project.lightingData.lights.forEach((light, index) => {
-      if (!light.isOn) return;
-
       const x = offsetX + light.x * scale;
       const y = offsetY + light.y * scale;
-      const radius = light.radius * scale;
+      const sizeMultiplier = light.size || 1.0;
       const isHovered = hoveredLight === light.id;
       
-      // Enhanced animated effects
-      const pulseOffset = animationEnabled ? Math.sin(time * 2 + index * 0.5) * 0.1 : 0;
-      const sparkleOffset = animationEnabled ? Math.sin(time * 4 + index * 1.2) * 0.05 : 0;
-      const rotationOffset = animationEnabled ? time * 0.5 + index * 0.3 : 0;
+      // Draw light fixture
+      ctx.save();
       
-      const currentIntensity = light.intensity / 100 * (1 + pulseOffset + sparkleOffset);
-      const hoverBoost = isHovered ? 0.3 : 0;
-      
-      // Enhanced glow with multiple layers
-      const innerGradient = ctx.createRadialGradient(x, y, 0, x, y, radius * 0.3);
-      innerGradient.addColorStop(0, `rgba(255, 255, 255, ${(currentIntensity + hoverBoost) * 0.9})`);
-      innerGradient.addColorStop(0.5, `rgba(255, 248, 220, ${(currentIntensity + hoverBoost) * 0.7})`);
-      innerGradient.addColorStop(1, `rgba(255, 248, 220, ${(currentIntensity + hoverBoost) * 0.4})`);
-      
-      ctx.fillStyle = innerGradient;
-      ctx.beginPath();
-      ctx.arc(x, y, radius * 0.3, 0, Math.PI * 2);
-      ctx.fill();
-      
-      // Outer glow
-      const outerGradient = ctx.createRadialGradient(x, y, radius * 0.3, x, y, radius);
-      outerGradient.addColorStop(0, `rgba(255, 248, 220, ${(currentIntensity + hoverBoost) * 0.4})`);
-      outerGradient.addColorStop(0.5, `rgba(255, 248, 220, ${(currentIntensity + hoverBoost) * 0.2})`);
-      outerGradient.addColorStop(1, 'rgba(255, 248, 220, 0)');
-      
-      ctx.fillStyle = outerGradient;
-      ctx.beginPath();
-      ctx.arc(x, y, radius, 0, Math.PI * 2);
-      ctx.fill();
-      
-      // Sparkle effects for animation
-      if (animationEnabled) {
-        for (let i = 0; i < 6; i++) {
-          const angle = rotationOffset + (i * Math.PI * 2) / 6;
-          const sparkleDistance = (radius * 0.7) + Math.sin(time * 3 + i) * 5;
-          const sparkleX = x + Math.cos(angle) * sparkleDistance;
-          const sparkleY = y + Math.sin(angle) * sparkleDistance;
-          const sparkleSize = (1 + Math.sin(time * 5 + i * 0.8)) * 1.5;
-          
-          ctx.fillStyle = `rgba(255, 255, 255, ${0.6 + Math.sin(time * 4 + i) * 0.4})`;
-          ctx.beginPath();
-          ctx.arc(sparkleX, sparkleY, sparkleSize, 0, Math.PI * 2);
-          ctx.fill();
+      if (light.isOn) {
+        ctx.save();
+        
+        if (light.direction !== undefined) {
+          ctx.translate(x, y);
+          ctx.rotate(light.direction * Math.PI / 180);
+          ctx.translate(-x, -y);
         }
+        
+        // Draw light glow with wall physics based on light type
+        if (light.type === 'spot-type5-wall-washer' || light.type === 'wall-washer-spot') {
+          // Semi-circle glow with shadows
+        ctx.save();
+          ctx.beginPath();
+          ctx.arc(x, y, light.radius * scale * sizeMultiplier, -Math.PI, 0);
+          ctx.closePath();
+          ctx.clip();
+          drawLightWithShadows(ctx, x, y, light.radius * scale * sizeMultiplier, light.color, light.intensity, offsetX, offsetY, scale);
+          ctx.restore();
+        } else if (light.type === 'adjustable-spot-type6') {
+          // Cone glow with shadows
+          ctx.save();
+          ctx.beginPath();
+          ctx.moveTo(x,y);
+          ctx.arc(x, y, light.radius * scale * sizeMultiplier, -Math.PI / 4, Math.PI / 4);
+          ctx.closePath();
+          ctx.clip();
+          drawLightWithShadows(ctx, x, y, light.radius * scale * sizeMultiplier, light.color, light.intensity, offsetX, offsetY, scale);
+          ctx.restore();
+        } else if (light.type === 'laser-blade' || light.type === 'linear-wall-washer' || light.type === 'linear-profile-lighting' || light.type === 'indoor-strip-light' || light.type === 'curtain-grazer' || light.type === 'outdoor-profile' || light.type === 'magnetic-track' || light.type === 'magnetic-laser-blade' || light.type === 'magnetic-laser-blade-large' || light.type === 'magnetic-profile' || light.type === 'magnetic-profile-large' || light.type === 'laser-blade-wall-washer' || light.type === 'laser-blade-wall-washer-large' || light.type === 'magnetic-profile-adjustable' || light.type === 'magnetic-profile-adjustable-large' || light.type === 'stretch-ceiling' || light.type === 'module-signage' || light.type === 'table-lamp' || light.type === 'floor-lamp' || light.type === 'chandelier-2' || light.type === 'dining-linear-pendant' || light.type === 'hanging-light') {
+          // Rectangular glow with shadows
+          const rectWidth = (light.width || (light.type === 'laser-blade' ? 60 : (light.type === 'indoor-strip-light' || light.type === 'curtain-grazer' || light.type === 'outdoor-profile' || light.type === 'magnetic-track' ? 10 : 50))) * scale * sizeMultiplier;
+          const rectHeight = light.radius * scale * sizeMultiplier;
+          ctx.save();
+          ctx.beginPath();
+          ctx.rect(x - rectWidth / 2, y, rectWidth, rectHeight);
+          ctx.clip();
+          drawLightWithShadows(ctx, x, y, Math.max(rectWidth, rectHeight), light.color, light.intensity, offsetX, offsetY, scale);
+          ctx.restore();
+        } else if (light.type === 'gimbel-spot') {
+          // Double radial glow with shadows
+          ctx.save();
+          drawLightWithShadows(ctx, x - 5 * scale, y, light.radius * 0.6 * scale * sizeMultiplier, light.color, light.intensity, offsetX, offsetY, scale);
+          drawLightWithShadows(ctx, x + 5 * scale, y, light.radius * 0.6 * scale * sizeMultiplier, light.color, light.intensity, offsetX, offsetY, scale);
+          ctx.restore();
+        } else {
+          // Standard radial glow with shadows
+          drawLightWithShadows(ctx, x, y, light.radius * scale * sizeMultiplier, light.color, light.intensity, offsetX, offsetY, scale);
+        }
+        ctx.restore();
       }
       
-      // Draw light fixture with hover effect
-      const fixtureSize = 4 * light.size * (isHovered ? 1.2 : 1);
+      // Draw fixture icon with proper styling from lighting page
+      ctx.fillStyle = light.isOn ? '#ffff88' : '#666666';
+      ctx.strokeStyle = '#333333';
+      ctx.lineWidth = 2;
       
-      // Fixture glow
-      if (isHovered) {
-        const fixtureGlow = ctx.createRadialGradient(x, y, 0, x, y, fixtureSize + 8);
-        fixtureGlow.addColorStop(0, 'rgba(255, 0, 255, 0.6)');
-        fixtureGlow.addColorStop(1, 'rgba(255, 0, 255, 0)');
-        ctx.fillStyle = fixtureGlow;
+      // Enhanced light fixture rendering based on type (from lighting page)
+      switch (light.type) {
+        case 'spot-type1': {
+          ctx.fillStyle = '#FF00FF';
         ctx.beginPath();
-        ctx.arc(x, y, fixtureSize + 8, 0, Math.PI * 2);
+          ctx.arc(x, y, 6 * sizeMultiplier, 0, Math.PI * 2);
+          ctx.fill();
+
+          ctx.strokeStyle = '#FFFFFF';
+          ctx.lineWidth = 1;
+          ctx.beginPath();
+          ctx.arc(x, y, 10 * sizeMultiplier, 0, Math.PI * 2);
+          ctx.stroke();
+          break;
+        }
+        case 'spot-type2': {
+          ctx.strokeStyle = '#FF00FF';
+          ctx.lineWidth = 4;
+          ctx.beginPath();
+          ctx.arc(x, y, 9, 0, Math.PI * 2);
+          ctx.stroke();
+
+          ctx.strokeStyle = '#FFFFFF';
+          ctx.lineWidth = 1;
+          ctx.beginPath();
+          ctx.arc(x, y, 4, 0, Math.PI * 2);
+          ctx.stroke();
+              break;
+            }
+        case 'spot-type3': {
+          ctx.strokeStyle = '#FF00FF';
+          ctx.lineWidth = 4;
+          ctx.beginPath();
+          ctx.arc(x, y, 8, 0, Math.PI * 2);
+          ctx.stroke();
+          break;
+        }
+        case 'spot-type4': {
+          ctx.strokeStyle = '#FF00FF';
+          ctx.lineWidth = 3;
+          ctx.beginPath();
+          ctx.arc(x, y, 9, 0, Math.PI * 2);
+          ctx.stroke();
+
+          ctx.strokeStyle = '#FFFFFF';
+          ctx.lineWidth = 1;
+          ctx.beginPath();
+          ctx.arc(x, y, 4, 0, Math.PI * 2);
+          ctx.stroke();
+          break;
+        }
+        case 'spot-type5-wall-washer': {
+          ctx.strokeStyle = '#FF00FF';
+          ctx.lineWidth = 1;
+          ctx.beginPath();
+          ctx.arc(x, y, 10, 0, Math.PI * 2);
+          ctx.stroke();
+          
+          ctx.save();
+          ctx.beginPath();
+          ctx.arc(x, y, 8, 0, Math.PI, false);
+          ctx.clip();
+          
+          ctx.strokeStyle = '#FF00FF';
+          ctx.lineWidth = 0.5;
+          for (let i = -8; i <= 8; i += 2) {
+            ctx.beginPath();
+            ctx.moveTo(x + i, y);
+            ctx.lineTo(x + i, y - 8);
+            ctx.stroke();
+          }
+          for (let i = 0; i >= -8; i -= 2) {
+            ctx.beginPath();
+            ctx.moveTo(x - 8, y + i);
+            ctx.lineTo(x + 8, y + i);
+            ctx.stroke();
+          }
+          ctx.restore();
+          break;
+        }
+        case 'adjustable-spot-type6': {
+          ctx.strokeStyle = '#FF00FF';
+          ctx.lineWidth = 1;
+          ctx.beginPath();
+          ctx.arc(x, y, 10, 0, Math.PI * 2);
+          ctx.stroke();
+          
+          ctx.save();
+          ctx.beginPath();
+          ctx.arc(x, y, 9, 0, Math.PI * 2);
+        ctx.clip();
+        
+          ctx.strokeStyle = '#FF00FF';
+          ctx.lineWidth = 0.5;
+          for (let i = -12; i <= 12; i += 3) {
+            ctx.beginPath();
+            ctx.moveTo(x + i - 12, y - 12);
+            ctx.lineTo(x + i + 12, y + 12);
+            ctx.stroke();
+          }
+          ctx.restore();
+          
+          ctx.fillStyle = 'black';
+        ctx.beginPath();
+          ctx.arc(x, y, 2, 0, Math.PI * 2);
+        ctx.fill();
+          break;
+        }
+        case 'mini-spot': {
+          ctx.strokeStyle = '#FF00FF';
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.arc(x, y, 9, 0, Math.PI * 2);
+          ctx.stroke();
+          ctx.beginPath();
+          ctx.arc(x, y, 4, 0, Math.PI * 2);
+          ctx.stroke();
+          break;
+        }
+        case 'bed-reading-spot': {
+          ctx.strokeStyle = '#FF00FF';
+          ctx.lineWidth = 3;
+          ctx.beginPath();
+          ctx.arc(x, y, 7, 0, Math.PI * 2);
+          ctx.stroke();
+          break;
+        }
+        case 'waterproof-spot': {
+          ctx.strokeStyle = '#FF00FF';
+          ctx.lineWidth = 1;
+          ctx.beginPath();
+          ctx.arc(x, y, 10, 0, Math.PI * 2);
+          ctx.stroke();
+          
+          ctx.save();
+          ctx.beginPath();
+          ctx.arc(x, y, 9, 0, Math.PI * 2);
+          ctx.clip();
+          ctx.strokeStyle = '#FF00FF';
+          ctx.lineWidth = 0.5;
+          for (let i = -10; i <= 10; i += 2) {
+            ctx.beginPath();
+            ctx.moveTo(x + i, y - 10);
+            ctx.lineTo(x + i, y + 10);
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.moveTo(x - 10, y + i);
+            ctx.lineTo(x + 10, y + i);
+            ctx.stroke();
+          }
+        ctx.restore();
+          break;
+        }
+        case 'wall-washer-spot': {
+          ctx.strokeStyle = '#FF00FF';
+          ctx.lineWidth = 1;
+          ctx.beginPath();
+          ctx.arc(x, y, 10, 0, Math.PI * 2);
+          ctx.stroke();
+          
+          ctx.fillStyle = '#FF00FF';
+          ctx.beginPath();
+          ctx.arc(x, y, 9, -Math.PI / 2, Math.PI / 2, false);
+          ctx.fill();
+          break;
+        }
+        case 'laser-blade': {
+          const rectWidth = 50 * sizeMultiplier;
+          const rectHeight = 12 * sizeMultiplier;
+          ctx.strokeStyle = '#FF00FF';
+          ctx.lineWidth = 1;
+          ctx.strokeRect(x - rectWidth / 2, y - rectHeight / 2, rectWidth, rectHeight);
+          
+          ctx.fillStyle = '#FF00FF';
+          for (let i = 0; i < 5; i++) {
+        ctx.beginPath();
+            ctx.arc(x - (rectWidth/2) + 8 * sizeMultiplier + (i*9 * sizeMultiplier), y, 3 * sizeMultiplier, 0, 2 * Math.PI);
         ctx.fill();
       }
-      
-      // Main fixture
-      ctx.fillStyle = isHovered ? '#FF44FF' : '#FF00FF';
+          break;
+        }
+        case 'linear-wall-washer': {
+          const rectWidth = 50;
+          const rectHeight = 8;
+          ctx.fillStyle = '#FF00FF';
+          ctx.fillRect(x - rectWidth / 2, y - rectHeight / 2, rectWidth, rectHeight);
+          
+          ctx.strokeStyle = '#FF00FF';
+          ctx.lineWidth = 1;
+          ctx.beginPath();
+          ctx.moveTo(x - rectWidth / 2, y - rectHeight / 2 - 2);
+          ctx.lineTo(x + rectWidth / 2, y - rectHeight / 2 - 2);
+          ctx.stroke();
+          break;
+        }
+        case 'linear-profile-lighting': {
+          const rectWidth = 50;
+          const rectHeight = 4;
+          ctx.fillStyle = '#FF00FF';
+          ctx.fillRect(x - rectWidth / 2, y - rectHeight / 2, rectWidth, rectHeight);
+          ctx.strokeStyle = '#FF00FF';
+          ctx.lineWidth = 1;
+          ctx.beginPath();
+          ctx.moveTo(x - rectWidth / 2, y - rectHeight / 2 - 2);
+          ctx.lineTo(x + rectWidth / 2, y - rectHeight / 2 - 2);
+          ctx.stroke();
+          break;
+        }
+        case 'gimbel-spot': {
+          ctx.strokeStyle = '#FF00FF';
+          ctx.lineWidth = 1;
+          ctx.beginPath();
+          ctx.moveTo(x - 10, y - 6);
+          ctx.lineTo(x - 10, y + 6);
+          ctx.stroke();
+          ctx.fillStyle = '#FF00FF';
+          ctx.beginPath();
+          ctx.arc(x - 3, y, 4, 0, 2 * Math.PI);
+          ctx.fill();
+          ctx.beginPath();
+          ctx.arc(x + 5, y, 4, 0, 2 * Math.PI);
+          ctx.fill();
+          break;
+        }
+        case 'surface-spot-light-indoor': {
+          ctx.fillStyle = '#FF00FF';
+          ctx.beginPath();
+          ctx.arc(x, y, 9, 0, 2 * Math.PI);
+          ctx.fill();
+          break;
+        }
+        case 'surface-spot-light-indoor-2': {
+          ctx.strokeStyle = '#FF00FF';
+          ctx.lineWidth = 1;
+          ctx.beginPath();
+          ctx.arc(x, y, 10, 0, 2 * Math.PI);
+          ctx.stroke();
+          ctx.beginPath();
+          ctx.arc(x, y, 5, 0, 2 * Math.PI);
+          ctx.stroke();
+          ctx.moveTo(x, y - 10);
+          ctx.lineTo(x, y - 5);
+          ctx.stroke();
+          ctx.moveTo(x, y + 5);
+          ctx.lineTo(x, y + 10);
+          ctx.stroke();
+          ctx.moveTo(x - 10, y);
+          ctx.lineTo(x - 5, y);
+          ctx.stroke();
+          ctx.moveTo(x + 5, y);
+          ctx.lineTo(x + 10, y);
+          ctx.stroke();
+          break;
+        }
+        case 'downlight': {
+          ctx.strokeStyle = '#FF00FF';
+          ctx.lineWidth = 1;
+          ctx.beginPath();
+          ctx.arc(x, y, 10, 0, 2 * Math.PI);
+          ctx.stroke();
+          ctx.save();
+          ctx.beginPath();
+          ctx.arc(x, y, 9, 0, 2 * Math.PI);
+          ctx.clip();
+          ctx.strokeStyle = '#FF00FF';
+          ctx.lineWidth = 0.5;
+          for (let i = -10; i <= 10; i += 4) {
+              ctx.beginPath();
+              ctx.moveTo(x + i, y - 10);
+              ctx.lineTo(x + i, y + 10);
+              ctx.stroke();
+          }
+          for (let i = -10; i <= 10; i += 4) {
+              ctx.beginPath();
+              ctx.moveTo(x - 10, y + i);
+              ctx.lineTo(x + 10, y + i);
+              ctx.stroke();
+          }
+          ctx.restore();
+          break;
+        }
+        case 'surface-panel': {
+          ctx.fillStyle = '#FF00FF';
+          ctx.beginPath();
+          ctx.arc(x, y, 9, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.fillStyle = 'black';
+          ctx.fillRect(x - 2, y - 9, 4, 18);
+          break;
+        }
+        case 'indoor-strip-light': {
+          ctx.save();
+          ctx.strokeStyle = '#FF00FF';
+          ctx.lineWidth = 3;
+          ctx.setLineDash([8, 4]);
+          ctx.beginPath();
+          ctx.moveTo(x, y - 10);
+          ctx.lineTo(x, y + 10);
+          ctx.stroke();
+          ctx.restore();
+          break;
+        }
+        case 'curtain-grazer': {
+          ctx.strokeStyle = '#FF00FF';
+          ctx.lineWidth = 3;
+          ctx.beginPath();
+          ctx.moveTo(x, y - 10);
+          ctx.lineTo(x, y + 10);
+          ctx.stroke();
+          ctx.strokeStyle = 'white';
+          ctx.lineWidth = 1;
+          ctx.beginPath();
+          ctx.moveTo(x - 2.5, y - 10);
+          ctx.lineTo(x - 2.5, y + 10);
+          ctx.stroke();
+          ctx.beginPath();
+          ctx.moveTo(x + 2.5, y - 10);
+          ctx.lineTo(x + 2.5, y + 10);
+          ctx.stroke();
+          break;
+        }
+        case 'outdoor-profile': {
+          ctx.save();
+          ctx.strokeStyle = 'red';
+          ctx.lineWidth = 3;
+          ctx.setLineDash([8, 4]);
+          ctx.beginPath();
+          ctx.moveTo(x, y - 10);
+          ctx.lineTo(x, y + 10);
+          ctx.stroke();
+          ctx.restore();
+          break;
+        }
+        case 'magnetic-track': {
+          const rectWidth = 10;
+          const rectHeight = 30;
+          ctx.strokeStyle = '#FF00FF';
+          ctx.lineWidth = 1;
+          ctx.strokeRect(x - rectWidth / 2, y - rectHeight / 2, rectWidth, rectHeight);
+          ctx.lineWidth = 0.5;
+          ctx.beginPath();
+          ctx.moveTo(x - rectWidth / 2 + 2.5, y - rectHeight / 2);
+          ctx.lineTo(x - rectWidth / 2 + 2.5, y + rectHeight / 2);
+          ctx.stroke();
+          ctx.beginPath();
+          ctx.moveTo(x, y - rectHeight / 2);
+          ctx.lineTo(x, y + rectHeight / 2);
+          ctx.stroke();
+          ctx.beginPath();
+          ctx.moveTo(x + rectWidth / 2 - 2.5, y - rectHeight / 2);
+          ctx.lineTo(x + rectWidth / 2 - 2.5, y + rectHeight / 2);
+          ctx.stroke();
+          break;
+        }
+        case 'track-spot': {
+          ctx.strokeStyle = '#FF00FF';
+          ctx.fillStyle = '#FF00FF';
+          ctx.lineWidth = 1;
+          ctx.beginPath();
+          ctx.moveTo(x-4, y-7);
+          ctx.quadraticCurveTo(x, y-10, x+4, y-7);
+          ctx.lineTo(x+4, y);
+          ctx.lineTo(x-4, y);
+          ctx.closePath();
+          ctx.fill();
+          ctx.strokeRect(x-5, y, 10, 2);
+          ctx.fillRect(x-3, y+2, 6, 4);
+          break;
+        }
+        case 'track-spot-2': {
+          ctx.fillStyle = '#FF00FF';
+          ctx.strokeStyle = '#FF00FF';
+          ctx.lineWidth = 1;
+          ctx.beginPath();
+          ctx.moveTo(x-5, y-8);
+          ctx.lineTo(x+5, y-8);
+          ctx.lineTo(x, y-2);
+          ctx.closePath();
+          ctx.fill();
+          ctx.strokeRect(x-4, y-1, 8, 4);
+          ctx.strokeRect(x-6, y+4, 12, 2);
+          ctx.beginPath();
+          ctx.moveTo(x, y+6);
+          ctx.lineTo(x, y+9);
+          ctx.stroke();
+          break;
+        }
+        case 'magnetic-laser-blade': {
+          const rectWidth = 50;
+          const rectHeight = 12;
+          ctx.fillStyle = '#8B0000';
+          ctx.strokeStyle = '#FF00FF';
+          ctx.lineWidth = 1;
+          ctx.fillRect(x - rectWidth / 2, y - rectHeight / 2, rectWidth, rectHeight);
+          ctx.strokeRect(x - rectWidth / 2, y - rectHeight / 2, rectWidth, rectHeight);
+          ctx.strokeStyle = '#FF00FF';
+          for (let i = 0; i < 6; i++) {
+            ctx.beginPath();
+            ctx.arc(x - (rectWidth/2) + 6 + (i*8), y, 4, 0, 2 * Math.PI);
+            ctx.stroke();
+          }
+          break;
+        }
+        case 'magnetic-laser-blade-large': {
+          const rectWidth = 100;
+          const rectHeight = 12;
+          ctx.fillStyle = '#8B0000';
+          ctx.strokeStyle = '#FF00FF';
+          ctx.lineWidth = 1;
+          ctx.fillRect(x - rectWidth / 2, y - rectHeight / 2, rectWidth, rectHeight);
+          ctx.strokeRect(x - rectWidth / 2, y - rectHeight / 2, rectWidth, rectHeight);
+          ctx.strokeStyle = '#FF00FF';
+          for (let i = 0; i < 12; i++) {
+            ctx.beginPath();
+            ctx.arc(x - (rectWidth/2) + 6 + (i*8), y, 4, 0, 2 * Math.PI);
+            ctx.stroke();
+          }
+          break;
+        }
+        case 'magnetic-profile': {
+          const rectWidth = 50;
+          const rectHeight = 8;
+          ctx.fillStyle = '#8B0000';
+          ctx.fillRect(x - rectWidth / 2, y - rectHeight / 2, rectWidth, rectHeight);
+          break;
+        }
+        case 'magnetic-profile-large': {
+          const rectWidth = 80;
+          const rectHeight = 8;
+          ctx.fillStyle = '#8B0000';
+          ctx.fillRect(x - rectWidth / 2, y - rectHeight / 2, rectWidth, rectHeight);
+          break;
+        }
+        case 'laser-blade-wall-washer': {
+          const rectWidth = 50;
+          const rectHeight = 12;
+          ctx.fillStyle = '#8B0000';
+          ctx.strokeStyle = '#FF00FF';
+          ctx.lineWidth = 1;
+          ctx.fillRect(x - rectWidth / 2, y - rectHeight / 2, rectWidth, rectHeight);
+          ctx.strokeRect(x - rectWidth / 2, y - rectHeight / 2, rectWidth, rectHeight);
+          ctx.strokeStyle = '#FF00FF';
+          for (let i = 0; i < 6; i++) {
+            ctx.beginPath();
+            ctx.arc(x - (rectWidth/2) + 6 + (i*8), y, 4, 0, 2 * Math.PI);
+            ctx.stroke();
+          }
+          ctx.beginPath();
+          ctx.moveTo(x - rectWidth / 2, y);
+          ctx.lineTo(x + rectWidth / 2, y);
+          ctx.stroke();
+          break;
+        }
+        case 'laser-blade-wall-washer-large': {
+          const rectWidth = 100;
+          const rectHeight = 12;
+          ctx.fillStyle = '#8B0000';
+          ctx.strokeStyle = '#FF00FF';
+          ctx.lineWidth = 1;
+          ctx.fillRect(x - rectWidth / 2, y - rectHeight / 2, rectWidth, rectHeight);
+          ctx.strokeRect(x - rectWidth / 2, y - rectHeight / 2, rectWidth, rectHeight);
+          ctx.strokeStyle = '#FF00FF';
+          for (let i = 0; i < 12; i++) {
+            ctx.beginPath();
+            ctx.arc(x - (rectWidth/2) + 6 + (i*8), y, 4, 0, 2 * Math.PI);
+            ctx.stroke();
+          }
+          ctx.beginPath();
+          ctx.moveTo(x - rectWidth / 2, y);
+          ctx.lineTo(x + rectWidth / 2, y);
+          ctx.stroke();
+          break;
+        }
+        case 'magnetic-profile-adjustable': {
+          const rectWidth = 50;
+          const rectHeight = 12;
+          ctx.strokeStyle = '#8B0000';
+          ctx.fillStyle = '#8B0000';
+          ctx.lineWidth = 3;
+          ctx.beginPath();
+          ctx.moveTo(x - rectWidth / 2, y - rectHeight / 2);
+          ctx.lineTo(x - rectWidth / 2, y + rectHeight / 2);
+          ctx.lineTo(x + rectWidth / 2, y + rectHeight / 2);
+          ctx.lineTo(x + rectWidth / 2, y - rectHeight / 2);
+          ctx.stroke();
+          ctx.fillRect(x - rectWidth/2 + 5, y - 2, rectWidth - 10, 4);
+          break;
+        }
+        case 'magnetic-profile-adjustable-large': {
+          const rectWidth = 80;
+          const rectHeight = 15;
+          ctx.strokeStyle = '#8B0000';
+          ctx.fillStyle = '#8B0000';
+          ctx.lineWidth = 4;
+          ctx.beginPath();
+          ctx.moveTo(x - rectWidth / 2, y - rectHeight / 2);
+          ctx.lineTo(x - rectWidth / 2, y + rectHeight / 2);
+          ctx.lineTo(x + rectWidth / 2, y + rectHeight / 2);
+          ctx.lineTo(x + rectWidth / 2, y - rectHeight / 2);
+          ctx.stroke();
+          ctx.fillRect(x - rectWidth/2 + 6, y - 2, rectWidth - 12, 4);
+          break;
+        }
+        case 'stretch-ceiling': {
+          const rectWidth = (light.width || 80) * scale;
+          const rectHeight = (light.radius || 120) * scale;
+          const gradient = ctx.createLinearGradient(x - rectWidth/2, y, x + rectWidth/2, y);
+          gradient.addColorStop(0, 'rgba(255, 0, 255, 0)');
+          gradient.addColorStop(0.2, 'rgba(255, 0, 255, 0.4)');
+          gradient.addColorStop(0.5, 'rgba(255, 0, 255, 0.6)');
+          gradient.addColorStop(0.8, 'rgba(255, 0, 255, 0.4)');
+          gradient.addColorStop(1, 'rgba(255, 0, 255, 0)');
+          ctx.fillStyle = gradient;
+          ctx.fillRect(x - rectWidth/2, y - rectHeight/2, rectWidth, rectHeight);
+          break;
+        }
+        case 'module-signage': {
+          const blue = '#4299e1';
+          ctx.strokeStyle = blue;
+          ctx.lineWidth = 1;
+          const width = light.width || 50;
+          const height = light.radius || 50;
+          for (let i = 0; i < 5; i++) {
+            ctx.beginPath();
+            ctx.moveTo(x + (i - 2) * 10, y - height/2);
+            ctx.lineTo(x + (i - 2) * 10, y + height/2);
+            ctx.stroke();
+          }
+          for (let i = 0; i < 3; i++) {
+            ctx.beginPath();
+            ctx.moveTo(x - width/2, y + (i - 1) * 15);
+            ctx.lineTo(x + width/2, y + (i - 1) * 15);
+            ctx.stroke();
+          }
+          break;
+        }
+        case 'table-lamp': {
+          const blue = '#0000FF';
+          ctx.strokeStyle = blue;
+          ctx.fillStyle = blue;
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.arc(x, y, 20, Math.PI, 0);
+          ctx.stroke();
+          ctx.fillRect(x - 15, y, 30, 8);
+          break;
+        }
+        case 'floor-lamp': {
+          const blue = '#0000FF';
+          ctx.strokeStyle = blue;
+          ctx.fillStyle = blue;
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.arc(x, y, 15, Math.PI, 0);
+          ctx.stroke();
+          ctx.fillRect(x - 10, y, 20, 6);
+          ctx.fillRect(x - 2, y + 6, 4, 10);
+          break;
+        }
+        case 'chandelier-2': {
+          const blue = '#0000FF';
+          ctx.fillStyle = blue;
+          ctx.beginPath();
+          ctx.arc(x, y, 15 * sizeMultiplier, 0, Math.PI * 2);
+          ctx.fill();
+          for (let i = 0; i < 12; i++) {
+            const angle = (i / 12) * 2 * Math.PI;
+            const x2 = x + Math.cos(angle) * 20 * sizeMultiplier;
+            const y2 = y + Math.sin(angle) * 20 * sizeMultiplier;
+            ctx.beginPath();
+            ctx.arc(x2, y2, 5 * sizeMultiplier, 0, Math.PI * 2);
+            ctx.fill();
+          }
+          break;
+        }
+        case 'dining-linear-pendant': {
+          const magenta = '#FF00FF';
+          ctx.strokeStyle = magenta;
+          ctx.fillStyle = magenta;
+          ctx.lineWidth = 2;
+          ctx.strokeRect(x - 40, y - 5, 80, 10);
+          ctx.fillRect(x - 38, y - 3, 76, 6);
+          break;
+        }
+        case 'hanging-light': {
+          const blue = '#0000FF';
+          ctx.fillStyle = blue;
+          ctx.strokeStyle = 'white';
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.arc(x, y, 20, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.beginPath();
+          ctx.moveTo(x, y-20);
+          ctx.lineTo(x,y+20);
+          ctx.stroke();
+          ctx.beginPath();
+          ctx.moveTo(x-20, y);
+          ctx.lineTo(x+20,y);
+          ctx.stroke();
+          break;
+        }
+        default: {
+          // Default simple fixture for unknown types
+          const fixtureSize = 4 * sizeMultiplier * (isHovered ? 1.2 : 1);
+          
+      if (light.isOn) {
+        ctx.fillStyle = isHovered ? '#FF6666' : '#FF4444';
+      } else {
+        ctx.fillStyle = isHovered ? '#888888' : '#666666';
+      }
       ctx.strokeStyle = '#FFFFFF';
       ctx.lineWidth = isHovered ? 3 : 2;
       ctx.beginPath();
@@ -771,28 +1976,34 @@ export default function PreviewPage() {
       ctx.fill();
       ctx.stroke();
       
-      // Animated center dot
-      if (animationEnabled) {
-        const centerPulse = Math.sin(time * 6 + index * 2) * 0.5 + 0.5;
-        ctx.fillStyle = `rgba(255, 255, 255, ${0.8 + centerPulse * 0.2})`;
-        ctx.beginPath();
-        ctx.arc(x, y, fixtureSize * 0.3 * (1 + centerPulse * 0.2), 0, Math.PI * 2);
-        ctx.fill();
+      if (light.isOn) {
+        ctx.fillStyle = '#FFFFFF';
+      } else {
+        ctx.fillStyle = '#CCCCCC';
+      }
+      ctx.beginPath();
+      ctx.arc(x, y, fixtureSize * 0.3, 0, Math.PI * 2);
+      ctx.fill();
+          break;
+        }
       }
       
-      // Draw light type indicator with better visibility
-      ctx.fillStyle = isHovered ? '#FFFF00' : '#FFFFFF';
-      ctx.font = `${isHovered ? '10px' : '8px'} Arial`;
-      ctx.textAlign = 'center';
-      ctx.strokeStyle = '#000000';
-      ctx.lineWidth = 1;
-      ctx.strokeText(light.type.split('-')[0].toUpperCase(), x, y + (fixtureSize + 18));
-      ctx.fillText(light.type.split('-')[0].toUpperCase(), x, y + (fixtureSize + 18));
+      // Add hover effects and interactivity
+      if (isHovered) {
+        ctx.strokeStyle = '#00FFFF';
+        ctx.lineWidth = 3;
+        ctx.setLineDash([5, 5]);
+        const outlineSize = 15 * sizeMultiplier;
+        ctx.strokeRect(x - outlineSize, y - outlineSize, outlineSize * 2, outlineSize * 2);
+        ctx.setLineDash([]);
 
       // Draw distance lines when hovered
-      if (isHovered && project?.blueprintData?.walls) {
+        if (project?.blueprintData?.walls) {
         drawDistanceLines(ctx, light, offsetX, offsetY, scale);
       }
+      }
+      
+      ctx.restore();
     });
   };
 
@@ -935,10 +2146,10 @@ export default function PreviewPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-950 via-blue-950 to-slate-900 flex items-center justify-center">
+      <div className="min-h-screen premium-gradient-bg flex items-center justify-center">
         <div className="text-center">
-          <Loader2 className="h-12 w-12 animate-spin text-cyan-400 mx-auto mb-4" />
-          <p className="text-cyan-300">Loading project preview...</p>
+          <Loader2 className="h-12 w-12 animate-spin text-primary mx-auto mb-4" />
+          <p className="premium-text text-primary">Loading project preview...</p>
         </div>
       </div>
     );
@@ -946,13 +2157,13 @@ export default function PreviewPage() {
 
   if (error || !project) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-950 via-blue-950 to-slate-900 flex items-center justify-center">
+      <div className="min-h-screen premium-gradient-bg flex items-center justify-center">
         <div className="text-center space-y-4">
-          <div className="mx-auto w-16 h-16 bg-red-500/20 rounded-full flex items-center justify-center">
-            <ExternalLink className="h-8 w-8 text-red-400" />
+          <div className="mx-auto w-16 h-16 bg-red-100 rounded-full flex items-center justify-center">
+            <ExternalLink className="h-8 w-8 text-red-500" />
           </div>
-          <h1 className="text-2xl font-bold text-red-300">Preview Not Available</h1>
-          <p className="text-slate-400">{error || 'Project not found'}</p>
+          <h1 className="text-2xl font-bold text-red-600">Preview Not Available</h1>
+          <p className="premium-text">{error || 'Project not found'}</p>
         </div>
       </div>
     );
@@ -961,54 +2172,92 @@ export default function PreviewPage() {
   const bomData = generateBOMData();
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-blue-950 to-slate-900">
-      {/* Header */}
-      <header className="bg-slate-900/80 border-b border-slate-700 backdrop-blur-xl">
-        <div className="container mx-auto px-6 py-4">
-          <div className="flex items-center justify-between">
+    <div className="min-h-screen bg-gray-50">
+      {/* Modern Header with White Theme */}
+      <header className="bg-white border-b border-gray-200 shadow-sm">
+        <div className="container mx-auto px-6 py-6">
+          {/* Top Row - Branding */}
+          <div className="flex items-center justify-between mb-4">
             <div className="flex items-center space-x-4">
-              <div className="flex items-center space-x-2">
-                <Eye className="h-8 w-8 text-cyan-400" />
-                <div>
-                  <h1 className="text-xl font-bold bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent">
-                    {project.title}
+              <div className="flex items-center space-x-3">
+                <Image
+                  src="/lightscapelogo.png"
+                  alt="Lightscape Logo"
+                  width={40}
+                  height={40}
+                  className="drop-shadow-sm"
+                />
+                <div className="flex flex-col">
+                  <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                    Belecure
                   </h1>
-                  <p className="text-sm text-slate-400">Project Preview</p>
+                  <p className="text-xs text-gray-600">A Product of Lightscape</p>
                 </div>
               </div>
-              <Badge className="bg-green-500 text-white">
+            </div>
+            <Button
+              onClick={() => window.history.back()}
+              variant="outline"
+              className="border-gray-300 text-gray-700 hover:bg-gray-50 hover:text-gray-900 hover:border-gray-400 transition-all duration-200"
+            >
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Back to Dashboard
+            </Button>
+          </div>
+          
+          {/* Bottom Row - Project Info & Controls */}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-4">
+              <div className="flex items-center space-x-3">
+                <div className="p-2 bg-gradient-to-br from-blue-100 to-purple-100 rounded-lg border border-blue-200">
+                  <Eye className="h-6 w-6 text-blue-600" />
+                </div>
+                <div>
+                  <h2 className="text-xl font-bold text-gray-900">
+                    {project.title}
+                  </h2>
+                  <p className="text-sm text-gray-600">Project Preview</p>
+                </div>
+              </div>
+              <Badge className="bg-gradient-to-r from-green-500 to-emerald-500 text-white shadow-sm border-0 px-3 py-1">
+                <Activity className="h-3 w-3 mr-1" />
                 {project.status.replace('_', ' ').toUpperCase()}
               </Badge>
             </div>
+            
             <div className="flex items-center space-x-3">
               <Button
                 onClick={() => setAnimationEnabled(!animationEnabled)}
-                variant="outline"
-                className={`border-gray-600 text-gray-300 hover:text-white ${
-                  animationEnabled ? 'bg-cyan-600/20 border-cyan-500' : 'hover:bg-gray-700'
-                }`}
+                variant={animationEnabled ? "default" : "outline"}
+                className={animationEnabled 
+                  ? "bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-white border-0 shadow-md"
+                  : "border-gray-300 text-gray-700 hover:bg-gray-50 hover:text-gray-900 hover:border-gray-400 bg-white"
+                }
               >
-                <Lightbulb className="h-4 w-4 mr-2" />
-                {animationEnabled ? 'Disable' : 'Enable'} Animation
+                <Zap className="h-4 w-4 mr-2" />
+                {animationEnabled ? 'Animation ON' : 'Animation OFF'}
               </Button>
+              
               <Button
                 onClick={() => setShowBOM(!showBOM)}
-                variant="outline"
-                className={`border-gray-600 text-gray-300 hover:text-white ${
-                  showBOM ? 'bg-blue-600/20 border-blue-500' : 'hover:bg-gray-700'
-                }`}
+                variant={showBOM ? "default" : "outline"}
+                className={showBOM 
+                  ? "bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white border-0 shadow-md"
+                  : "border-gray-300 text-gray-700 hover:bg-gray-50 hover:text-gray-900 hover:border-gray-400 bg-white"
+                }
               >
                 <Layers className="h-4 w-4 mr-2" />
-                {showBOM ? 'Hide' : 'Show'} BOM
+                {showBOM ? 'Hide BOM' : 'Show BOM'}
               </Button>
+              
               <Button
                 onClick={copyPreviewLink}
                 variant="outline"
-                className="border-gray-600 text-gray-300 hover:bg-gray-700 hover:text-white"
+                className="border-gray-300 text-gray-700 hover:bg-gradient-to-r hover:from-green-50 hover:to-emerald-50 hover:text-green-700 hover:border-green-400 transition-all duration-200 bg-white"
               >
                 {linkCopied ? (
                   <>
-                    <CheckCircle2 className="h-4 w-4 mr-2 text-green-400" />
+                    <CheckCircle2 className="h-4 w-4 mr-2 text-green-500" />
                     Copied!
                   </>
                 ) : (
@@ -1026,31 +2275,43 @@ export default function PreviewPage() {
       {/* Hover Tooltip */}
       {hoveredLight && mousePos && (
         <div 
-          className="fixed z-50 bg-slate-800 border border-cyan-500 rounded-lg p-3 shadow-xl pointer-events-none"
+          className="fixed z-50 bg-white border border-gray-300 rounded-lg p-3 shadow-xl pointer-events-none"
           style={{ 
             left: mousePos.x + 15, 
             top: mousePos.y - 10,
-            transform: mousePos.x > window.innerWidth - 200 ? 'translateX(-100%)' : 'none'
+            transform: mousePos.x > window.innerWidth - 250 ? 'translateX(-100%)' : 'none'
           }}
         >
-          <div className="text-cyan-400 font-semibold text-sm mb-2">
-            Light Distance Information
+          <div className="text-gray-800 font-semibold text-sm mb-2">
+            Light Control & Information
+          </div>
+          <div className="space-y-2 text-xs text-gray-600 mb-3">
+            <div className="flex items-center justify-between space-x-4">
+              <div className="flex items-center space-x-2">
+                <div className={`w-2 h-2 rounded-full ${project?.lightingData?.lights?.find(l => l.id === hoveredLight)?.isOn ? 'bg-green-500' : 'bg-gray-400'}`}></div>
+                <span>Status: {project?.lightingData?.lights?.find(l => l.id === hoveredLight)?.isOn ? 'ON' : 'OFF'}</span>
+              </div>
+            </div>
+            <div className="flex items-center space-x-2">
+              <span className="text-blue-600">💡</span>
+              <span>Click to toggle ON/OFF</span>
+            </div>
           </div>
           {lightDistances[hoveredLight] && (
-            <div className="space-y-1 text-xs text-slate-300">
+            <div className="space-y-1 text-xs text-gray-600">
               <div className="flex justify-between space-x-4">
                 <span>Horizontal:</span>
-                <span className="text-cyan-400 font-mono">
+                <span className="text-blue-600 font-mono">
                   {lightDistances[hoveredLight].horizontal.toFixed(1)} {lightDistances[hoveredLight].unit}
                 </span>
               </div>
               <div className="flex justify-between space-x-4">
                 <span>Vertical:</span>
-                <span className="text-cyan-400 font-mono">
+                <span className="text-blue-600 font-mono">
                   {lightDistances[hoveredLight].vertical.toFixed(1)} {lightDistances[hoveredLight].unit}
                 </span>
               </div>
-              <div className="pt-1 border-t border-slate-600 text-slate-400 text-xs">
+              <div className="pt-1 border-t border-gray-300 text-gray-500 text-xs">
                 Distance to nearest walls
               </div>
             </div>
@@ -1062,43 +2323,67 @@ export default function PreviewPage() {
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
           {/* Canvas Area */}
           <div className={`${showBOM ? 'lg:col-span-3' : 'lg:col-span-4'}`}>
-            <Card className="bg-slate-900/60 border-slate-700 backdrop-blur-xl">
-              <CardHeader className="pb-3">
+            <Card className="bg-white border-gray-200 shadow-lg">
+              <CardHeader className="pb-4 bg-gray-50 border-b border-gray-200">
                 <div className="flex items-center justify-between">
-                  <CardTitle className="text-slate-200">Lighting Design Preview</CardTitle>
-                  <div className="flex items-center space-x-4 text-sm text-slate-400">
-                    <span className="flex items-center space-x-1">
-                      <Lightbulb className="h-4 w-4" />
-                      <span>{project.lightingData?.lights?.filter(l => l.isOn).length || 0} Active Lights</span>
-                    </span>
-                    <span className="flex items-center space-x-1">
-                      <HomeIcon className="h-4 w-4" />
-                      <span>{project.metadata.roomCount} Rooms</span>
-                    </span>
+                  <div className="flex items-center space-x-3">
+                    <div className="p-2 bg-gradient-to-br from-blue-100 to-purple-100 rounded-lg border border-blue-200">
+                      <Lightbulb className="h-5 w-5 text-blue-600" />
+                    </div>
+                    <CardTitle className="text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                      Lighting Design Preview
+                    </CardTitle>
+                  </div>
+                  <div className="flex items-center space-x-6 text-sm">
+                    <div className="flex items-center space-x-2 px-3 py-2 bg-gradient-to-r from-cyan-100 to-blue-100 rounded-lg border border-cyan-200">
+                      <Zap className="h-4 w-4 text-cyan-600" />
+                      <span className="text-cyan-700 font-medium">{project.lightingData?.lights?.filter(l => l.isOn).length || 0}</span>
+                      <span className="text-gray-600">/ {project.lightingData?.lights?.length || 0} Lights</span>
+                    </div>
+                    <div className="flex items-center space-x-2 px-3 py-2 bg-gradient-to-r from-green-100 to-emerald-100 rounded-lg border border-green-200">
+                      <HomeIcon className="h-4 w-4 text-green-600" />
+                      <span className="text-green-700 font-medium">{project.metadata.roomCount}</span>
+                      <span className="text-gray-600">Rooms</span>
+                    </div>
                   </div>
                 </div>
               </CardHeader>
-              <CardContent>
-                <canvas
-                  ref={canvasRef}
-                  width={CANVAS_WIDTH}
-                  height={CANVAS_HEIGHT}
-                  className="rounded-lg border border-gray-600 shadow-inner w-full h-auto bg-slate-800 cursor-crosshair"
-                  style={{ maxWidth: '100%', height: 'auto' }}
-                  onMouseMove={handleCanvasMouseMove}
-                  onMouseLeave={handleCanvasMouseLeave}
-                />
-                <div className="mt-4 text-center text-sm text-slate-500">
-                  <p className="flex items-center justify-center space-x-1">
-                    <Calendar className="h-3 w-3" />
-                    <span>Created: {new Date(project.createdAt).toLocaleDateString()}</span>
-                    {project.completedAt && (
-                      <>
-                        <span className="mx-2">•</span>
-                        <span>Completed: {new Date(project.completedAt).toLocaleDateString()}</span>
-                      </>
-                    )}
-                  </p>
+              <CardContent className="p-6">
+                <div className="relative">
+                  <canvas
+                    ref={canvasRef}
+                    width={CANVAS_WIDTH}
+                    height={CANVAS_HEIGHT}
+                    className="rounded-xl border-2 border-gray-300 shadow-lg w-full h-auto bg-gray-100 cursor-crosshair transition-all duration-300 hover:border-blue-400"
+                    style={{ maxWidth: '100%', height: 'auto' }}
+                    onMouseMove={handleCanvasMouseMove}
+                    onMouseLeave={handleCanvasMouseLeave}
+                    onClick={handleCanvasClick}
+                  />
+                  {/* Canvas Overlay */}
+                  <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-sm rounded-lg px-3 py-2 border border-gray-200 shadow-sm">
+                    <div className="flex items-center space-x-2 text-xs text-gray-600">
+                      <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                      <span>Live Preview</span>
+                    </div>
+                  </div>
+                </div>
+                
+                {/* Project Info */}
+                <div className="mt-6 flex items-center justify-center space-x-6 text-sm">
+                  <div className="flex items-center space-x-2 text-gray-600">
+                    <Calendar className="h-4 w-4" />
+                    <span>Created: <span className="text-gray-800">{new Date(project.createdAt).toLocaleDateString()}</span></span>
+                  </div>
+                  {project.completedAt && (
+                    <>
+                      <div className="w-1 h-1 bg-gray-400 rounded-full"></div>
+                      <div className="flex items-center space-x-2 text-gray-600">
+                        <CheckCircle2 className="h-4 w-4 text-green-500" />
+                        <span>Completed: <span className="text-gray-800">{new Date(project.completedAt).toLocaleDateString()}</span></span>
+                      </div>
+                    </>
+                  )}
                 </div>
               </CardContent>
             </Card>
@@ -1107,46 +2392,61 @@ export default function PreviewPage() {
           {/* BOM Panel */}
           {showBOM && (
             <div className="lg:col-span-1">
-              <Card className="bg-slate-900/60 border-slate-700 backdrop-blur-xl">
-                <CardHeader className="pb-3">
+              <Card className="bg-white border-gray-200 shadow-lg">
+                <CardHeader className="pb-4 bg-gray-50 border-b border-gray-200">
                   <div className="flex items-center justify-between">
-                    <CardTitle className="text-slate-200 text-lg">Bill of Materials</CardTitle>
+                    <div className="flex items-center space-x-3">
+                      <div className="p-2 bg-gradient-to-br from-purple-100 to-pink-100 rounded-lg border border-purple-200">
+                        <Layers className="h-4 w-4 text-purple-600" />
+                      </div>
+                      <CardTitle className="text-lg font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+                        Bill of Materials
+                      </CardTitle>
+                    </div>
                     <Button
                       onClick={exportBOM}
                       size="sm"
                       variant="outline"
-                      className="border-gray-600 text-gray-300 hover:bg-gray-700 hover:text-white"
+                      className="border-gray-300 text-gray-700 hover:bg-gradient-to-r hover:from-green-50 hover:to-emerald-50 hover:text-green-700 hover:border-green-400 transition-all duration-200 bg-white"
                     >
                       <Download className="h-3 w-3 mr-1" />
                       Export
                     </Button>
                   </div>
                 </CardHeader>
-                <CardContent className="max-h-96 overflow-y-auto">
+                <CardContent className="max-h-96 overflow-y-auto p-4">
                   <div className="space-y-3">
                     {bomData.map((item, index) => (
-                      <div key={index} className="bg-slate-800/50 rounded-lg p-3 border border-slate-700">
-                        <div className="flex items-start justify-between mb-2">
-                          <h4 className="font-medium text-slate-200 text-sm">{item.type}</h4>
-                          <Badge variant="outline" className="text-xs">
+                      <div key={index} className="bg-gradient-to-r from-gray-50 to-gray-100 rounded-xl p-4 border border-gray-200 hover:border-purple-300 transition-all duration-200 hover:shadow-md">
+                        <div className="flex items-start justify-between mb-3">
+                          <h4 className="font-semibold text-gray-800 text-sm leading-tight">{item.type}</h4>
+                          <Badge className="bg-gradient-to-r from-blue-500 to-cyan-500 text-white border-0 text-xs px-2 py-1">
                             {item.quantity}x
                           </Badge>
                         </div>
-                        <div className="space-y-1 text-xs text-slate-400">
-                          <div className="flex justify-between">
-                            <span>Intensity:</span>
-                            <span>{item.averageIntensity}%</span>
+                        <div className="space-y-2 text-xs">
+                          <div className="flex justify-between items-center">
+                            <span className="text-gray-600">Intensity:</span>
+                            <div className="flex items-center space-x-2">
+                              <div className="w-12 h-1.5 bg-gray-300 rounded-full overflow-hidden">
+                                <div 
+                                  className="h-full bg-gradient-to-r from-yellow-400 to-orange-400 rounded-full transition-all duration-300"
+                                  style={{ width: `${item.averageIntensity}%` }}
+                                ></div>
+                              </div>
+                              <span className="text-orange-600 font-medium">{item.averageIntensity}%</span>
+                            </div>
                           </div>
-                          <div className="flex justify-between">
-                            <span>Status:</span>
-                            <span>{item.status}</span>
+                          <div className="flex justify-between items-center">
+                            <span className="text-gray-600">Status:</span>
+                            <span className="text-green-600 font-medium">{item.status}</span>
                           </div>
-                          <div className="flex justify-between">
-                            <span>Position:</span>
-                            <span>({item.position?.x}, {item.position?.y})</span>
+                          <div className="flex justify-between items-center">
+                            <span className="text-gray-600">Position:</span>
+                            <span className="text-gray-800 font-mono text-xs">({item.position?.x}, {item.position?.y})</span>
                           </div>
                           {item.notes && (
-                            <div className="text-slate-500 text-xs mt-1">
+                            <div className="text-gray-600 text-xs mt-2 p-2 bg-gray-100 rounded-lg border border-gray-200">
                               {item.notes}
                             </div>
                           )}
@@ -1156,9 +2456,12 @@ export default function PreviewPage() {
                   </div>
                   
                   {bomData.length === 0 && (
-                    <div className="text-center py-8 text-slate-500">
-                      <Lightbulb className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                      <p>No light fixtures found</p>
+                    <div className="text-center py-12">
+                      <div className="bg-gradient-to-br from-gray-100 to-gray-200 rounded-xl p-6 border border-gray-200">
+                        <Lightbulb className="h-12 w-12 mx-auto mb-3 text-gray-400" />
+                        <p className="text-gray-600 font-medium">No light fixtures found</p>
+                        <p className="text-gray-500 text-xs mt-1">Add lights to your design to see the BOM</p>
+                      </div>
                     </div>
                   )}
                 </CardContent>
@@ -1167,6 +2470,29 @@ export default function PreviewPage() {
           )}
         </div>
       </main>
+      
+      {/* Modern Footer */}
+      <footer className="bg-white border-t border-gray-200 shadow-sm">
+        <div className="container mx-auto px-6 py-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-3">
+              <Image
+                src="/lightscapelogo.png"
+                alt="Lightscape Logo"
+                width={24}
+                height={24}
+                className="opacity-75"
+              />
+              <p className="text-sm text-gray-600">
+                © 2024 <span className="text-blue-600 font-medium">Belecure</span> - A Product of <span className="text-purple-600 font-medium">Lightscape</span>. All rights reserved.
+              </p>
+            </div>
+            <div className="text-xs text-gray-500">
+              Professional Lighting Design Platform
+            </div>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 } 

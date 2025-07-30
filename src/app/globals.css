@@ -4,6 +4,50 @@
 
 @layer base {
   :root {
+    /* Warm White Premium Theme with Red Secondary */
+    --background: 45 20% 97%; /* Warm off-white background */
+    --foreground: 25 15% 15%; /* Dark warm brown text */
+    --card: 40 25% 95%; /* Warm cream card background */
+    --card-foreground: 25 15% 15%; /* Dark warm brown text */
+    --popover: 40 25% 95%; /* Warm cream popover */
+    --popover-foreground: 25 15% 15%; /* Dark warm brown text */
+    --primary: 25 75% 45%; /* Warm brown primary */
+    --primary-foreground: 45 20% 97%; /* Light text on primary */
+    --secondary: 0 75% 55%; /* Red secondary */
+    --secondary-foreground: 45 20% 97%; /* Light text on secondary */
+    --muted: 35 15% 88%; /* Warm muted background */
+    --muted-foreground: 25 10% 35%; /* Darker muted text for better visibility */
+    --accent: 0 85% 60%; /* Red accent color */
+    --accent-foreground: 45 20% 97%; /* Light text on accent */
+    --destructive: 0 85% 60%; /* Red for destructive actions */
+    --destructive-foreground: 0 0% 98%; /* White text on red */
+    --border: 25 20% 75%; /* Darker border for better visibility */
+    --input: 40 25% 92%; /* Warm input background */
+    --ring: 0 75% 55%; /* Red ring/focus */
+    --chart-1: 25 75% 45%; /* Warm brown */
+    --chart-2: 0 75% 55%; /* Red */
+    --chart-3: 15 85% 70%; /* Warm peach */
+    --chart-4: 45 70% 60%; /* Warm yellow */
+    --chart-5: 20 60% 55%; /* Warm brown */
+    --radius: 0.75rem;
+    --sidebar-background: 40 25% 95%;
+    --sidebar-foreground: 25 15% 15%;
+    --sidebar-primary: 25 75% 45%;
+    --sidebar-primary-foreground: 45 20% 97%;
+    --sidebar-accent: 35 15% 88%;
+    --sidebar-accent-foreground: 25 15% 15%;
+    --sidebar-border: 25 20% 75%;
+    --sidebar-ring: 0 75% 55%;
+    
+    /* Premium warm effect variables with red accents */
+    --warm-glow: 25 75% 45%;
+    --warm-accent: 0 75% 55%; /* Red accent */
+    --warm-muted: 30 25% 85%;
+    --premium-shadow: 25 25% 65%;
+  }
+  
+  /* Special class for canvas night mode - preserves original dark theme */
+  .canvas-night-mode {
     --background: 220 27% 8%; /* Deep dark blue-black */
     --foreground: 180 100% 95%; /* Bright cyan-white */
     --card: 220 25% 12%; /* Slightly lighter dark */
@@ -23,28 +67,14 @@
     --border: 195 100% 30%; /* Dim cyan border */
     --input: 220 25% 15%;
     --ring: 195 100% 50%; /* Cyan ring */
-    --chart-1: 195 100% 50%; /* Cyan */
-    --chart-2: 270 100% 50%; /* Purple */
-    --chart-3: 310 100% 60%; /* Magenta */
-    --chart-4: 120 100% 50%; /* Green */
-    --chart-5: 60 100% 50%; /* Yellow */
-    --radius: 0.75rem;
-    --sidebar-background: 220 27% 8%;
-    --sidebar-foreground: 180 100% 95%;
-    --sidebar-primary: 195 100% 50%;
-    --sidebar-primary-foreground: 220 27% 8%;
-    --sidebar-accent: 220 20% 15%;
-    --sidebar-accent-foreground: 180 100% 95%;
-    --sidebar-border: 195 100% 30%;
-    --sidebar-ring: 195 100% 50%;
-    
-    /* Neon glow variables */
     --neon-cyan: 195 100% 50%;
     --neon-purple: 270 100% 50%;
     --neon-pink: 310 100% 60%;
     --neon-green: 120 100% 50%;
   }
+
   .dark {
+    /* Keep original dark theme for backward compatibility */
     --background: 220 27% 8%;
     --foreground: 180 100% 95%;
     --card: 220 25% 12%;
@@ -87,14 +117,105 @@
   body {
     @apply bg-background text-foreground;
     background-image: 
-      radial-gradient(circle at 20% 50%, hsl(var(--neon-cyan) / 0.1) 0%, transparent 50%),
-      radial-gradient(circle at 80% 20%, hsl(var(--neon-purple) / 0.1) 0%, transparent 50%),
-      radial-gradient(circle at 40% 80%, hsl(var(--neon-pink) / 0.1) 0%, transparent 50%);
+      radial-gradient(circle at 20% 50%, hsl(var(--warm-glow) / 0.05) 0%, transparent 50%),
+      radial-gradient(circle at 80% 20%, hsl(var(--warm-accent) / 0.05) 0%, transparent 50%),
+      radial-gradient(circle at 40% 80%, hsl(var(--warm-muted) / 0.05) 0%, transparent 50%);
   }
 }
 
 @layer components {
-  /* Premium neon effects with refined styling */
+  /* Premium warm effects with red accents and better visibility */
+  .warm-glow {
+    box-shadow: 
+      0 0 2px hsl(var(--warm-glow)),
+      0 0 4px hsl(var(--warm-glow) / 0.6),
+      0 0 6px hsl(var(--warm-glow) / 0.4);
+  }
+  
+  .warm-text {
+    text-shadow: 
+      0 0 3px hsl(var(--warm-glow) / 0.3),
+      0 0 6px hsl(var(--warm-glow) / 0.2);
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    color: hsl(var(--primary));
+  }
+  
+  .warm-border {
+    border: 1px solid hsl(var(--border));
+    box-shadow: 
+      inset 0 0 6px hsl(var(--warm-glow) / 0.1),
+      0 0 6px hsl(var(--warm-glow) / 0.1);
+  }
+  
+  .warm-card {
+    background: hsl(var(--card) / 0.95);
+    border: 1px solid hsl(var(--border));
+    box-shadow: 
+      0 4px 12px hsl(var(--premium-shadow) / 0.2),
+      inset 0 1px 0 hsl(var(--warm-glow) / 0.1);
+    backdrop-filter: blur(8px);
+  }
+  
+  .warm-button {
+    background: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--secondary) / 0.9));
+    border: 1px solid hsl(var(--primary));
+    box-shadow: 
+      0 2px 8px hsl(var(--premium-shadow) / 0.3),
+      inset 0 1px 0 hsl(var(--background) / 0.2);
+    transition: all 0.2s ease;
+    font-size: 0.875rem;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+    color: hsl(var(--primary-foreground));
+  }
+  
+  .warm-button:hover {
+    background: linear-gradient(135deg, hsl(var(--primary) / 0.9), hsl(var(--secondary)));
+    box-shadow: 
+      0 4px 16px hsl(var(--premium-shadow) / 0.4),
+      0 0 12px hsl(var(--warm-glow) / 0.3),
+      inset 0 1px 0 hsl(var(--background) / 0.3);
+    transform: translateY(-1px);
+  }
+
+  /* Improved button variants for better visibility */
+  .visible-button {
+    background: hsl(var(--primary));
+    border: 2px solid hsl(var(--primary));
+    color: hsl(var(--primary-foreground));
+    font-weight: 600;
+    padding: 0.75rem 1.5rem;
+    box-shadow: 
+      0 2px 8px hsl(var(--primary) / 0.3),
+      inset 0 1px 0 hsl(var(--background) / 0.2);
+    transition: all 0.2s ease;
+  }
+
+  .visible-button:hover {
+    background: hsl(var(--primary) / 0.9);
+    box-shadow: 
+      0 4px 12px hsl(var(--primary) / 0.4),
+      inset 0 1px 0 hsl(var(--background) / 0.3);
+    transform: translateY(-1px);
+  }
+
+  .outline-visible {
+    background: transparent;
+    border: 2px solid hsl(var(--primary));
+    color: hsl(var(--primary));
+    font-weight: 600;
+    padding: 0.75rem 1.5rem;
+    transition: all 0.2s ease;
+  }
+
+  .outline-visible:hover {
+    background: hsl(var(--primary) / 0.1);
+    border-color: hsl(var(--primary) / 0.8);
+    color: hsl(var(--primary));
+  }
+
+  /* Keep original neon effects for canvas areas */
   .neon-glow {
     box-shadow: 
       0 0 2px hsl(var(--primary)),
@@ -147,25 +268,47 @@
     transform: translateY(-1px);
   }
   
-  /* Premium typography */
+  /* Premium typography with better visibility */
   .premium-text {
     font-size: 0.8125rem;
-    font-weight: 400;
+    font-weight: 500;
     letter-spacing: 0.2px;
     line-height: 1.4;
+    color: hsl(var(--muted-foreground));
   }
   
   .premium-label {
     font-size: 0.75rem;
-    font-weight: 500;
+    font-weight: 600;
     letter-spacing: 0.4px;
     text-transform: uppercase;
+    color: hsl(var(--primary));
   }
   
   .premium-title {
     font-size: 1.125rem;
-    font-weight: 600;
+    font-weight: 700;
     letter-spacing: 0.3px;
     line-height: 1.3;
+    color: hsl(var(--foreground));
+  }
+
+  /* Warm premium gradient backgrounds */
+  .warm-gradient-bg {
+    background: linear-gradient(135deg, 
+      hsl(var(--background)) 0%, 
+      hsl(var(--warm-muted) / 0.3) 25%, 
+      hsl(var(--card)) 50%, 
+      hsl(var(--warm-muted) / 0.2) 75%, 
+      hsl(var(--background)) 100%);
+  }
+
+  .premium-gradient-bg {
+    background: linear-gradient(135deg, 
+      hsl(45 25% 98%) 0%, 
+      hsl(40 20% 96%) 25%, 
+      hsl(35 25% 94%) 50%, 
+      hsl(40 20% 96%) 75%, 
+      hsl(45 25% 98%) 100%);
   }
 }

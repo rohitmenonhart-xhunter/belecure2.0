@@ -3,8 +3,12 @@ import './globals.css';
 import { Toaster } from "@/components/ui/toaster";
 
 export const metadata: Metadata = {
-  title: 'Belecure',
-  description: 'Upload your floor plan, draw walls, and create your blueprint.',
+  title: 'Belecure - A Product of Lightscape',
+  description: 'Advanced lighting design and floor plan creation tool. Upload your floor plan, draw walls, and create precise lighting blueprints with professional-grade calibration.',
+  keywords: 'lighting design, floor plan, architectural lighting, lightscape, belecure, interior design, lighting fixtures',
+  authors: [{ name: 'Lightscape' }],
+  creator: 'Lightscape',
+  publisher: 'Lightscape',
 };
 
 export default function RootLayout({
@@ -13,11 +17,32 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="dark">
+    <html lang="en">
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet" />
+        
+        {/* Lightscape Favicon Configuration */}
+        <link rel="apple-touch-icon" sizes="57x57" href="/favicon/apple-icon-57x57.png" />
+        <link rel="apple-touch-icon" sizes="60x60" href="/favicon/apple-icon-60x60.png" />
+        <link rel="apple-touch-icon" sizes="72x72" href="/favicon/apple-icon-72x72.png" />
+        <link rel="apple-touch-icon" sizes="76x76" href="/favicon/apple-icon-76x76.png" />
+        <link rel="apple-touch-icon" sizes="114x114" href="/favicon/apple-icon-114x114.png" />
+        <link rel="apple-touch-icon" sizes="120x120" href="/favicon/apple-icon-120x120.png" />
+        <link rel="apple-touch-icon" sizes="144x144" href="/favicon/apple-icon-144x144.png" />
+        <link rel="apple-touch-icon" sizes="152x152" href="/favicon/apple-icon-152x152.png" />
+        <link rel="apple-touch-icon" sizes="180x180" href="/favicon/apple-icon-180x180.png" />
+        <link rel="icon" type="image/png" sizes="192x192" href="/favicon/android-icon-192x192.png" />
+        <link rel="icon" type="image/png" sizes="32x32" href="/favicon/favicon-32x32.png" />
+        <link rel="icon" type="image/png" sizes="96x96" href="/favicon/favicon-96x96.png" />
+        <link rel="icon" type="image/png" sizes="16x16" href="/favicon/favicon-16x16.png" />
+        <link rel="manifest" href="/favicon/manifest.json" />
+        <meta name="msapplication-TileColor" content="#ffffff" />
+        <meta name="msapplication-TileImage" content="/favicon/ms-icon-144x144.png" />
+        <meta name="theme-color" content="#ffffff" />
+        <link rel="shortcut icon" href="/favicon/favicon.ico" type="image/x-icon" />
+        <link rel="icon" href="/favicon/favicon.ico" type="image/x-icon" />
       </head>
       <body className="font-body antialiased" suppressHydrationWarning>
         {children}

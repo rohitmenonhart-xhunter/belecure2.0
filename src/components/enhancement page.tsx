@@ -4,6 +4,7 @@ import { useEffect, useState, useRef, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Download, Zap, Sofa, Bed, Table, Tv, Refrigerator, Armchair, Plus, LogOut } from 'lucide-react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 
 interface Wall {
@@ -175,70 +176,70 @@ export default function EnhancementPage() {
 
   useEffect(() => {
     // Load sofa image
-    const sofaImg = new Image();
+    const sofaImg = new window.Image();
     sofaImg.onload = () => {
       setSofaImage(sofaImg);
     };
     sofaImg.src = '/sofatop.png';
 
     // Load grass image
-    const grassImg = new Image();
+    const grassImg = new window.Image();
     grassImg.onload = () => {
       setGrassImage(grassImg);
     };
     grassImg.src = '/topgrass.jpg';
 
     // Load flooring image
-    const flooringImg = new Image();
+    const flooringImg = new window.Image();
     flooringImg.onload = () => {
       setFlooringImage(flooringImg);
     };
     flooringImg.src = '/flooring.jpg';
 
     // Load garden light image
-    const gardenLightImg = new Image();
+    const gardenLightImg = new window.Image();
     gardenLightImg.onload = () => {
       setGardenLightImage(gardenLightImg);
     };
     gardenLightImg.src = '/gardenlight.png';
 
     // Load bed image
-    const bedImg = new Image();
+    const bedImg = new window.Image();
     bedImg.onload = () => {
       setBedImage(bedImg);
     };
     bedImg.src = '/bedtop.jpg';
 
     // Load TV image
-    const tvImg = new Image();
+    const tvImg = new window.Image();
     tvImg.onload = () => {
       setTvImage(tvImg);
     };
     tvImg.src = '/tvtop.png';
 
     // Load kitchen image
-    const kitchenImg = new Image();
+    const kitchenImg = new window.Image();
     kitchenImg.onload = () => {
       setKitchenImage(kitchenImg);
     };
     kitchenImg.src = '/kitchentop.png';
 
     // Load bathroom image
-    const bathroomImg = new Image();
+    const bathroomImg = new window.Image();
     bathroomImg.onload = () => {
       setBathroomImage(bathroomImg);
     };
     bathroomImg.src = '/bathroom.png';
 
     // Load dining image
-    const diningImg = new Image();
+    const diningImg = new window.Image();
     diningImg.onload = () => {
       setDiningImage(diningImg);
     };
     diningImg.src = '/diningtop.png';
 
     // Load wardrobe image
-    const wardrobeImg = new Image();
+    const wardrobeImg = new window.Image();
     wardrobeImg.onload = () => {
       setWardrobeImage(wardrobeImg);
     };
@@ -914,10 +915,10 @@ export default function EnhancementPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-950 via-blue-950 to-slate-900 flex items-center justify-center">
+      <div className="min-h-screen premium-gradient-bg flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-cyan-400 mx-auto mb-4"></div>
-          <p className="premium-text text-cyan-300">Loading blueprint...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="premium-text text-primary">Loading blueprint...</p>
         </div>
       </div>
     );
@@ -925,13 +926,13 @@ export default function EnhancementPage() {
 
   if (!blueprintData) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-950 via-blue-950 to-slate-900 flex items-center justify-center">
+      <div className="min-h-screen premium-gradient-bg flex items-center justify-center">
         <div className="text-center space-y-4">
-          <Zap className="h-16 w-16 text-red-400 mx-auto" />
-          <h1 className="premium-title text-red-300">No Blueprint Data Found</h1>
-          <p className="premium-text text-muted-foreground">Please create a blueprint first.</p>
+          <Zap className="h-16 w-16 text-red-500 mx-auto" />
+          <h1 className="premium-title text-red-600">No Blueprint Data Found</h1>
+          <p className="premium-text">Please create a blueprint first.</p>
           <Link href="/">
-            <Button className="mt-4 neon-button">
+            <Button className="mt-4 warm-button">
               <ArrowLeft className="h-4 w-4 mr-2" />
               Back to Editor
             </Button>
@@ -1305,28 +1306,43 @@ export default function EnhancementPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-900">
-      {/* Dark Mode Header */}
-      <header className="bg-gray-800 shadow-sm border-b border-gray-700">
+    <div className="min-h-screen premium-gradient-bg">
+      {/* Premium Header */}
+      <header className="bg-card/80 shadow-sm border-b border-border backdrop-blur-xl warm-border">
         <div className="container mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
-              <Link href="/">
-                <Button variant="outline" size="sm" className="border-gray-600 hover:bg-gray-700 text-gray-300 hover:text-white">
-                  <ArrowLeft className="h-4 w-4 mr-2" />
-                  Back to Editor
-                </Button>
-              </Link>
-              <div>
-                <h1 className="text-xl font-semibold text-gray-100">
+              <div className="flex items-center space-x-3">
+                <Image
+                  src="/lightscapelogo.png"
+                  alt="Lightscape Logo"
+                  width={32}
+                  height={32}
+                  className="warm-glow"
+                />
+                <div className="flex flex-col">
+                  <h1 className="text-xl font-semibold warm-text text-primary">
+                    Belecure
+                  </h1>
+                  <p className="text-xs premium-text opacity-75">A Product of Lightscape</p>
+                </div>
+              </div>
+              <div className="border-l border-border pl-4">
+                <h2 className="text-lg font-medium warm-text">
                   Blueprint Enhancement
-                </h1>
-                <p className="text-sm text-gray-400">
+                </h2>
+                <p className="text-sm premium-text">
                   Add furniture and enhance your floor plan • Ctrl+C to copy, Ctrl+V to paste
                 </p>
               </div>
             </div>
-            <div className="flex space-x-3">
+            <div className="flex items-center space-x-3">
+              <Link href="/">
+                <Button variant="outline" size="sm" className="border-border hover:bg-muted text-foreground hover:text-primary warm-border">
+                  <ArrowLeft className="h-4 w-4 mr-2" />
+                  Back to Dashboard
+                </Button>
+              </Link>
               <Button 
                 onClick={() => {
                   // Save enhanced data to localStorage before navigating
@@ -1335,7 +1351,7 @@ export default function EnhancementPage() {
                   // Navigate to lighting page
                   window.location.href = '/lighting';
                 }}
-                className="bg-yellow-600 hover:bg-yellow-700 text-white"
+                className="warm-button"
               >
                 <Zap className="h-4 w-4 mr-2" />
                 Go to Lighting
@@ -1360,7 +1376,7 @@ export default function EnhancementPage() {
               <Button 
                 onClick={handleLogout} 
                 variant="outline" 
-                className="border-red-600 text-red-400 hover:bg-red-900/20 hover:text-red-300 hover:border-red-500"
+                className="border-red-300 text-red-600 hover:bg-red-50 hover:text-red-700 hover:border-red-400"
                 disabled={isLoggingOut}
               >
                 <LogOut className="h-4 w-4 mr-2" />
@@ -1374,11 +1390,11 @@ export default function EnhancementPage() {
       {/* Main Content */}
       <main className="flex-1 flex">
         {/* Enhanced Furniture Toolbar with Drag & Drop */}
-        <div className="w-64 bg-gray-800 border-r border-gray-700 shadow-sm flex flex-col py-6 space-y-4">
-          <h3 className="text-sm font-medium text-gray-300 text-center">
+        <div className="w-64 bg-card/90 border-r border-border shadow-sm flex flex-col py-6 space-y-4 warm-border">
+          <h3 className="text-sm font-medium premium-label text-center">
             FURNITURE LIBRARY
           </h3>
-          <div className="w-full h-px bg-gray-600 mx-4"></div>
+          <div className="w-full h-px bg-border mx-4"></div>
           
           {/* Interaction Mode Buttons */}
           <div className="px-4">
@@ -1388,8 +1404,8 @@ export default function EnhancementPage() {
                 size="sm"
                 className={`p-2 flex flex-col items-center justify-center text-xs ${
                   interactionMode === 'select' 
-                    ? 'bg-blue-600 text-white hover:bg-blue-700' 
-                    : 'text-gray-400 hover:bg-gray-700 hover:text-gray-200'
+                    ? 'bg-blue-500 text-white hover:bg-blue-600' 
+                    : 'text-muted-foreground hover:bg-muted hover:text-foreground'
                 }`}
                 onClick={() => setInteractionMode('select')}
                 title="Select Mode"
@@ -1402,8 +1418,8 @@ export default function EnhancementPage() {
                 size="sm"
                 className={`p-2 flex flex-col items-center justify-center text-xs ${
                   interactionMode === 'move' 
-                    ? 'bg-green-600 text-white hover:bg-green-700' 
-                    : 'text-gray-400 hover:bg-gray-700 hover:text-gray-200'
+                    ? 'bg-green-500 text-white hover:bg-green-600' 
+                    : 'text-muted-foreground hover:bg-muted hover:text-foreground'
                 }`}
                 onClick={() => setInteractionMode('move')}
                 title="Move Mode"
@@ -1416,8 +1432,8 @@ export default function EnhancementPage() {
                 size="sm"
                 className={`p-2 flex flex-col items-center justify-center text-xs ${
                   interactionMode === 'rotate' 
-                    ? 'bg-orange-600 text-white hover:bg-orange-700' 
-                    : 'text-gray-400 hover:bg-gray-700 hover:text-gray-200'
+                    ? 'bg-orange-500 text-white hover:bg-orange-600' 
+                    : 'text-muted-foreground hover:bg-muted hover:text-foreground'
                 }`}
                 onClick={() => setInteractionMode('rotate')}
                 title="Rotate Mode"
@@ -1430,8 +1446,8 @@ export default function EnhancementPage() {
                 size="sm"
                 className={`p-2 flex flex-col items-center justify-center text-xs ${
                   interactionMode === 'pan' 
-                    ? 'bg-purple-600 text-white hover:bg-purple-700' 
-                    : 'text-gray-400 hover:bg-gray-700 hover:text-gray-200'
+                    ? 'bg-purple-500 text-white hover:bg-purple-600' 
+                    : 'text-muted-foreground hover:bg-muted hover:text-foreground'
                 }`}
                 onClick={() => setInteractionMode('pan')}
                 title="Pan Mode - Drag to move view"
@@ -1702,7 +1718,7 @@ export default function EnhancementPage() {
                 </div>
               </div>
             </div>
-            <div className="p-4 bg-gray-800">
+            <div className="p-4 bg-gray-800 canvas-night-mode">
               <canvas
                 ref={canvasRef}
                 width={CANVAS_WIDTH}
@@ -1899,6 +1915,20 @@ export default function EnhancementPage() {
           </div>
         </div>
       </main>
+      
+      {/* Footer */}
+      <footer className="py-3 text-center premium-text border-t border-border warm-border">
+        <div className="flex items-center justify-center space-x-2">
+          <Image
+            src="/lightscapelogo.png"
+            alt="Lightscape Logo"
+            width={16}
+            height={16}
+            className="opacity-75"
+          />
+          <span>© 2024 <span className="text-primary font-medium">Belecure</span> - A Product of <span className="text-primary font-medium">Lightscape</span>. All rights reserved.</span>
+        </div>
+      </footer>
     </div>
   );
 } 

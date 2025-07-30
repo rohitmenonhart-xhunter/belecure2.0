@@ -2,10 +2,14 @@
 
 import { useEffect, useState, useRef } from 'react';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Download, Zap, Lightbulb, Sun, Moon, Lamp, Home, Settings, Trash2, Copy, Eye, EyeOff, ChevronsLeft, ChevronsRight, Hand, LogOut } from 'lucide-react';
+import { ArrowLeft, Download, Zap, Lightbulb, Sun, Moon, Lamp, Home, Settings, Trash2, Copy, Eye, EyeOff, ChevronsLeft, ChevronsRight, Hand, LogOut, Loader2 } from 'lucide-react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { Card, CardContent } from '@/components/ui/card';
 import { useRouter } from 'next/navigation';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 
 interface Wall {
   id: string;
@@ -60,6 +64,9 @@ interface LightFixture {
   direction?: number; // For adjustable/directional lights, in degrees
   width?: number; // For linear lights
   size: number; // Size multiplier for the light fixture (0.5 to 3.0)
+  isSelected?: boolean; // For group selection
+  gapDistance?: number; // Gap distance for linear lights in real units
+  gapUnit?: 'feet' | 'meters'; // Unit for gap measurement
 }
 
 interface BlueprintData {
@@ -462,6 +469,19 @@ export default function LightingPage() {
   const [dragStart, setDragStart] = useState<{ x: number; y: number } | null>(null);
   const [isBlueprintDragEnabled, setIsBlueprintDragEnabled] = useState(false);
 
+  // Group selection and advanced features
+  const [isGroupSelectionMode, setIsGroupSelectionMode] = useState(false);
+  const [selectedLights, setSelectedLights] = useState<Set<string>>(new Set());
+  const [isDraggingGroup, setIsDraggingGroup] = useState(false);
+  const [groupDragStart, setGroupDragStart] = useState<{ x: number; y: number } | null>(null);
+  const [showLinearAdjustDialog, setShowLinearAdjustDialog] = useState(false);
+  const [adjustingLight, setAdjustingLight] = useState<LightFixture | null>(null);
+  const [newLinearLength, setNewLinearLength] = useState<number>(50);
+  const [showGapDialog, setShowGapDialog] = useState(false);
+  const [gapDistance, setGapDistance] = useState<number>(1);
+  const [gapUnit, setGapUnit] = useState<'feet' | 'meters'>('feet');
+  const [placingGap, setPlacingGap] = useState(false);
+
   // Zoom and Pan state
   const [zoom, setZoom] = useState(1);
   const [panOffset, setPanOffset] = useState({ x: 0, y: 0 });
@@ -483,6 +503,11 @@ export default function LightingPage() {
   // Save to MongoDB states
   const [isSaving, setIsSaving] = useState(false);
   const [saveMessage, setSaveMessage] = useState<string | null>(null);
+  const [showSaveDialog, setShowSaveDialog] = useState(false);
+  const [projectName, setProjectName] = useState('');
+  const [projectDescription, setProjectDescription] = useState('');
+  const [isEditingProject, setIsEditingProject] = useState(false);
+  const [editingProjectName, setEditingProjectName] = useState('');
 
   // Logout function
   const handleLogout = async () => {
@@ -504,17 +529,23 @@ export default function LightingPage() {
       return;
     }
 
+    // Check if we're editing an existing project
+    const editingProjectId = localStorage.getItem('editingProjectId');
+    
+    if (editingProjectId) {
+      // We're editing an existing project, save directly
+      await saveProject(editingProjectId, `Updated Lighting Design - ${new Date().toLocaleDateString()}`, `Updated complete lighting design with ${lightFixtures.length} light fixtures`);
+    } else {
+      // We're creating a new project, show name dialog
+      setShowSaveDialog(true);
+    }
+  };
+
+  const saveProject = async (projectId: string, title: string, description: string) => {
     setIsSaving(true);
     setSaveMessage(null);
 
     try {
-      // Check if we have an existing project ID from editing
-      const existingProjectId = localStorage.getItem('currentProjectId');
-      const projectId = existingProjectId || `project_${Date.now()}`;
-      const title = existingProjectId 
-        ? `Updated Lighting Design - ${new Date().toLocaleDateString()}`
-        : `Lighting Design - ${new Date().toLocaleDateString()}`;
-      
       const lightingData = {
         lights: lightFixtures,
         ambientLightLevel,
@@ -533,7 +564,7 @@ export default function LightingPage() {
         body: JSON.stringify({
           projectId,
           title,
-          description: `Complete lighting design with ${lightFixtures.length} light fixtures`,
+          description,
           blueprintData,
           furnitureData: furniture,
           lightingData,
@@ -544,14 +575,21 @@ export default function LightingPage() {
       const data = await response.json();
 
       if (response.ok) {
-        // Store the project ID for future saves
-        localStorage.setItem('currentProjectId', projectId);
+        const editingProjectId = localStorage.getItem('editingProjectId');
         
-        const message = existingProjectId 
-          ? 'Project updated successfully in MongoDB!' 
-          : 'Project saved successfully to MongoDB!';
-        setSaveMessage(message);
+        if (editingProjectId) {
+          setSaveMessage('Project updated successfully!');
+        } else {
+          setSaveMessage('Project saved successfully!');
+          // Clear any stored project ID since this is a new project
+          localStorage.removeItem('currentProjectId');
+          localStorage.removeItem('editingProjectId');
+        }
+        
         setTimeout(() => setSaveMessage(null), 3000);
+        setShowSaveDialog(false);
+        setProjectName('');
+        setProjectDescription('');
       } else {
         throw new Error(data.error || 'Failed to save project');
       }
@@ -564,48 +602,79 @@ export default function LightingPage() {
     }
   };
 
+  const handleSaveWithName = async () => {
+    if (!projectName.trim()) {
+      alert('Please enter a project name');
+      return;
+    }
+
+    // Generate a unique project ID for new projects
+    const newProjectId = `project_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    const description = projectDescription.trim() || `Complete lighting design with ${lightFixtures.length} light fixtures`;
+    
+    await saveProject(newProjectId, projectName.trim(), description);
+  };
+
   useEffect(() => {
     const loadProjectData = async () => {
-      // Check if we're editing an existing project
-      const editingProjectId = localStorage.getItem('editingProjectId');
-      
-      if (editingProjectId) {
-        // Load project from MongoDB
-        try {
-          const response = await fetch(`/api/projects/load?projectId=${editingProjectId}`);
-          const data = await response.json();
-          
-          if (response.ok && data.project) {
-            const project = data.project;
-            setBlueprintData(project.blueprintData);
-            setFurniture(project.furnitureData || []);
+      try {
+        // Check if we're editing an existing project
+        const editingProjectId = localStorage.getItem('editingProjectId');
+        
+        if (editingProjectId) {
+          setIsEditingProject(true);
+          // Load the project data to get the name
+          const response = await fetch(`/api/projects/preview/${editingProjectId}`);
+          if (response.ok) {
+            const data = await response.json();
+            setEditingProjectName(data.project?.title || 'Untitled Project');
+          }
+        }
+
+        // Load project data based on editing or creating mode
+        
+        if (editingProjectId) {
+          // Load project from MongoDB
+          try {
+            const response = await fetch(`/api/projects/load?projectId=${editingProjectId}`);
+            const data = await response.json();
             
-            // Load lighting data if it exists
-            if (project.lightingData && project.lightingData.lights) {
-              setLightFixtures(project.lightingData.lights);
-              setAmbientLightLevel(project.lightingData.ambientLightLevel || 20);
+            if (response.ok && data.project) {
+              const project = data.project;
+              setBlueprintData(project.blueprintData);
+              setFurniture(project.furnitureData || []);
+              
+              // Load lighting data if it exists
+              if (project.lightingData && project.lightingData.lights) {
+                setLightFixtures(project.lightingData.lights);
+                setAmbientLightLevel(project.lightingData.ambientLightLevel || 20);
+              }
+              
+              console.log('Loaded project data for editing:', project);
+              // Store the current project ID for future saves and clear the editing flag
+              localStorage.setItem('currentProjectId', project.projectId);
+              localStorage.removeItem('editingProjectId');
+            } else {
+              console.error('Failed to load project:', data.error);
+              // Fallback to localStorage
+              loadFromLocalStorage();
             }
-            
-            console.log('Loaded project data for editing:', project);
-            // Store the current project ID for future saves and clear the editing flag
-            localStorage.setItem('currentProjectId', project.projectId);
-            localStorage.removeItem('editingProjectId');
-          } else {
-            console.error('Failed to load project:', data.error);
+          } catch (error) {
+            console.error('Error loading project:', error);
             // Fallback to localStorage
             loadFromLocalStorage();
           }
-        } catch (error) {
-          console.error('Error loading project:', error);
-          // Fallback to localStorage
+        } else {
+          // Load from localStorage as before
           loadFromLocalStorage();
         }
-      } else {
-        // Load from localStorage as before
-        loadFromLocalStorage();
+        
+        setLoading(false);
+      } catch (error) {
+        console.error('Load error:', error);
+      } finally {
+        setLoading(false);
       }
-      
-      setLoading(false);
     };
 
     const loadFromLocalStorage = () => {
@@ -644,7 +713,7 @@ export default function LightingPage() {
     ];
 
     images.forEach(({ setter, src }) => {
-      const img = new Image();
+      const img = new window.Image();
       img.onload = () => setter(img);
       img.src = src;
     });
@@ -1928,9 +1997,9 @@ export default function LightingPage() {
       }
       
       // Draw selection outline and distance indicators
-      if (selectedLight === light.id) {
-        ctx.strokeStyle = '#00bcd4';
-        ctx.lineWidth = 2;
+      if (selectedLight === light.id || light.isSelected) {
+        ctx.strokeStyle = light.isSelected ? '#ff9800' : '#00bcd4'; // Orange for group selection, cyan for single
+        ctx.lineWidth = light.isSelected ? 3 : 2;
         ctx.setLineDash([5, 5]);
         const outlineSize = 15 * sizeMultiplier;
         ctx.strokeRect(x - outlineSize, y - outlineSize, outlineSize * 2, outlineSize * 2);
@@ -2026,6 +2095,14 @@ export default function LightingPage() {
           }
 
           ctx.setLineDash([]);
+        }
+        
+        // Show gap information if available
+        if (light.gapDistance && light.gapUnit) {
+          ctx.fillStyle = '#4ade80'; // Green color for gap info
+          ctx.font = '10px Arial';
+          ctx.textAlign = 'center';
+          ctx.fillText(`Gap: ${light.gapDistance}${light.gapUnit === 'feet' ? 'ft' : 'm'}`, x, y + 25);
         }
       }
       
@@ -2375,10 +2452,32 @@ export default function LightingPage() {
     }
 
     if (clickedLight) {
-      setSelectedLight(clickedLight.id);
-      if (isMoveModeEnabled) {
-        setIsDraggingLight(true);
-        setDragStart({ x: blueprintX, y: blueprintY });
+      if (isGroupSelectionMode) {
+        // Group selection mode
+        toggleLightSelection(clickedLight.id);
+      } else {
+        // Normal selection mode
+        setSelectedLight(clickedLight.id);
+        if (isMoveModeEnabled) {
+          console.log('Move mode click:', { 
+            selectedLightsSize: selectedLights.size, 
+            clickedLightId: clickedLight.id,
+            isClickedLightSelected: selectedLights.has(clickedLight.id),
+            selectedLightsArray: Array.from(selectedLights)
+          });
+          
+          if (selectedLights.size > 0 && selectedLights.has(clickedLight.id)) {
+            // Group dragging - clicked on a selected light
+            console.log('Starting group drag');
+            setIsDraggingGroup(true);
+            setGroupDragStart({ x: blueprintX, y: blueprintY });
+          } else if (selectedLights.size === 0) {
+            // Single light dragging
+            console.log('Starting single light drag');
+            setIsDraggingLight(true);
+            setDragStart({ x: blueprintX, y: blueprintY });
+          }
+        }
       }
     } else if (selectedLightType) {
       // Place new light fixture
@@ -2394,19 +2493,22 @@ export default function LightingPage() {
         size: 1.0, // Default size multiplier
         direction: (selectedLightType === 'spot-type5-wall-washer' || selectedLightType === 'adjustable-spot-type6' || selectedLightType === 'wall-washer-spot' || selectedLightType === 'laser-blade' || selectedLightType === 'linear-wall-washer' || selectedLightType === 'linear-profile-lighting' || selectedLightType === 'gimbel-spot' || selectedLightType === 'indoor-strip-light' || selectedLightType === 'curtain-grazer' || selectedLightType === 'outdoor-profile' || selectedLightType === 'magnetic-track' || selectedLightType === 'track-spot' || selectedLightType === 'track-spot-2' || selectedLightType === 'magnetic-laser-blade' || selectedLightType === 'magnetic-laser-blade-large' || selectedLightType === 'magnetic-profile' || selectedLightType === 'magnetic-profile-large' || selectedLightType === 'laser-blade-wall-washer' || selectedLightType === 'laser-blade-wall-washer-large' || selectedLightType === 'magnetic-profile-adjustable' || selectedLightType === 'magnetic-profile-adjustable-large' || selectedLightType === 'stretch-ceiling' || selectedLightType === 'module-signage' || selectedLightType === 'table-lamp' || selectedLightType === 'floor-lamp' || selectedLightType === 'chandelier-2' || selectedLightType === 'dining-linear-pendant' || selectedLightType === 'hanging-light') ? 0 : undefined,
         width: (selectedLightType === 'laser-blade' || selectedLightType === 'linear-wall-washer' || selectedLightType === 'linear-profile-lighting' || selectedLightType === 'indoor-strip-light' || selectedLightType === 'curtain-grazer' || selectedLightType === 'outdoor-profile' || selectedLightType === 'magnetic-track' || selectedLightType === 'magnetic-laser-blade' || selectedLightType === 'magnetic-profile' || selectedLightType === 'magnetic-profile-adjustable' || selectedLightType === 'dining-linear-pendant') ? 50 : (selectedLightType === 'magnetic-laser-blade-large' || selectedLightType === 'magnetic-profile-large' || selectedLightType === 'laser-blade-wall-washer-large' || selectedLightType === 'magnetic-profile-adjustable-large' || selectedLightType === 'stretch-ceiling' || selectedLightType === 'module-signage') ? 100 : undefined,
+        isSelected: false
       };
       
       setLightFixtures(prev => [...prev, newLight]);
       setSelectedLight(newLight.id);
       setSelectedLightType(null);
     } else {
-      setSelectedLight(null);
+      if (!isGroupSelectionMode) {
+        setSelectedLight(null);
+      }
     }
   };
 
   const handleCanvasMouseMove = (event: React.MouseEvent<HTMLCanvasElement>) => {
-    if (!isDraggingLight || !selectedLight || !canvasRef.current || !blueprintData) return;
-
+    if (!canvasRef.current || !blueprintData) return;
+    
     const canvas = canvasRef.current;
     const rect = canvas.getBoundingClientRect();
     
@@ -2437,17 +2539,38 @@ export default function LightingPage() {
     const blueprintX = (canvasX - offsetX) / scale;
     const blueprintY = (canvasY - offsetY) / scale;
 
-    // Update the selected light position
-    setLightFixtures(prev => prev.map(light => 
-      light.id === selectedLight 
-        ? { ...light, x: blueprintX, y: blueprintY }
-        : light
-    ));
+    // Handle single light dragging
+    if (isDraggingLight && selectedLight && dragStart) {
+      const deltaX = blueprintX - dragStart.x;
+      const deltaY = blueprintY - dragStart.y;
+      
+      setLightFixtures(prev => prev.map(light => 
+        light.id === selectedLight 
+          ? { ...light, x: dragStart.x + deltaX, y: dragStart.y + deltaY }
+          : light
+      ));
+    }
+    
+    // Handle group dragging
+    if (isDraggingGroup && groupDragStart && selectedLights.size > 0) {
+      const deltaX = blueprintX - groupDragStart.x;
+      const deltaY = blueprintY - groupDragStart.y;
+      
+      console.log('Group dragging:', { isDraggingGroup, selectedLights: selectedLights.size, deltaX, deltaY });
+      
+      // Only move if there's significant movement to avoid jitter
+      if (Math.abs(deltaX) > 0.5 || Math.abs(deltaY) > 0.5) {
+        moveSelectedLights(deltaX, deltaY);
+        setGroupDragStart({ x: blueprintX, y: blueprintY });
+      }
+    }
   };
 
   const handleCanvasMouseUp = () => {
     setIsDraggingLight(false);
+    setIsDraggingGroup(false);
     setDragStart(null);
+    setGroupDragStart(null);
   };
 
   const handleZoom = (delta: number, centerX?: number, centerY?: number) => {
@@ -2575,12 +2698,234 @@ export default function LightingPage() {
     { type: 'hanging-light', label: 'Hanging Light' },
   ];
 
+  // Group selection and management functions
+  const toggleGroupSelectionMode = () => {
+    setIsGroupSelectionMode(!isGroupSelectionMode);
+    if (isGroupSelectionMode) {
+      // Keep selections when exiting group mode - don't clear them!
+      // The selected lights should remain selected for group operations
+      console.log('Exiting group mode, keeping', selectedLights.size, 'lights selected');
+    }
+    setSelectedLight(null);
+  };
+
+  const toggleLightSelection = (lightId: string) => {
+    if (!isGroupSelectionMode) return;
+    
+    const newSelectedLights = new Set(selectedLights);
+    if (newSelectedLights.has(lightId)) {
+      newSelectedLights.delete(lightId);
+    } else {
+      newSelectedLights.add(lightId);
+    }
+    
+    setSelectedLights(newSelectedLights);
+    setLightFixtures(prev => prev.map(light => ({
+      ...light,
+      isSelected: newSelectedLights.has(light.id)
+    })));
+  };
+
+  const selectAllLights = () => {
+    if (!isGroupSelectionMode) return;
+    
+    const allLightIds = new Set(lightFixtures.map(light => light.id));
+    setSelectedLights(allLightIds);
+    setLightFixtures(prev => prev.map(light => ({ ...light, isSelected: true })));
+  };
+
+  const clearLightSelection = () => {
+    setSelectedLights(new Set());
+    setLightFixtures(prev => prev.map(light => ({ ...light, isSelected: false })));
+  };
+
+  const duplicateSelectedLights = () => {
+    if (selectedLights.size === 0) return;
+    
+    const selectedLightObjects = lightFixtures.filter(light => selectedLights.has(light.id));
+    const duplicatedLights: LightFixture[] = selectedLightObjects.map(light => ({
+      ...light,
+      id: `${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+      x: light.x + 50, // Offset duplicated lights
+      y: light.y + 50,
+      isSelected: false
+    }));
+    
+    setLightFixtures(prev => [...prev, ...duplicatedLights]);
+    
+    // Clear selection after duplication
+    clearLightSelection();
+  };
+
+  const deleteSelectedLights = () => {
+    if (selectedLights.size === 0) return;
+    
+    setLightFixtures(prev => prev.filter(light => !selectedLights.has(light.id)));
+    setSelectedLights(new Set());
+  };
+
+  const moveSelectedLights = (deltaX: number, deltaY: number) => {
+    if (selectedLights.size === 0) return;
+    
+    setLightFixtures(prev => prev.map(light => 
+      selectedLights.has(light.id) 
+        ? { ...light, x: light.x + deltaX, y: light.y + deltaY }
+        : light
+    ));
+  };
+
+  // Linear light adjustment functions
+  const isLinearLight = (type: LightFixture['type']): boolean => {
+    const linearTypes = [
+      'laser-blade', 'linear-wall-washer', 'linear-profile-lighting', 
+      'indoor-strip-light', 'curtain-grazer', 'outdoor-profile', 
+      'magnetic-track', 'magnetic-laser-blade', 'magnetic-laser-blade-large',
+      'magnetic-profile', 'magnetic-profile-large', 'laser-blade-wall-washer',
+      'laser-blade-wall-washer-large', 'magnetic-profile-adjustable',
+      'magnetic-profile-adjustable-large', 'stretch-ceiling', 'module-signage',
+      'dining-linear-pendant'
+    ];
+    return linearTypes.includes(type);
+  };
+
+  const adjustLinearLightLength = (lightId: string, newLength: number) => {
+    setLightFixtures(prev => prev.map(light => 
+      light.id === lightId 
+        ? { ...light, width: newLength }
+        : light
+    ));
+  };
+
+  const openLinearAdjustDialog = (light: LightFixture) => {
+    if (!isLinearLight(light.type)) return;
+    
+    setAdjustingLight(light);
+    setNewLinearLength(light.width || 50);
+    setShowLinearAdjustDialog(true);
+  };
+
+  const applyLinearAdjustment = () => {
+    if (!adjustingLight) return;
+    
+    adjustLinearLightLength(adjustingLight.id, newLinearLength);
+    setShowLinearAdjustDialog(false);
+    setAdjustingLight(null);
+  };
+
+  // Gap placement functions
+  const convertGapToPixels = (distance: number, unit: 'feet' | 'meters'): number => {
+    if (!blueprintData?.calibration?.pixelsPerInch) return distance * 20; // Fallback
+    
+    const pixelsPerInch = blueprintData.calibration.pixelsPerInch;
+    let inches = 0;
+    
+    if (unit === 'feet') {
+      inches = distance * 12;
+    } else if (unit === 'meters') {
+      inches = distance * 39.3701; // 1 meter = 39.3701 inches
+    }
+    
+    return inches * pixelsPerInch;
+  };
+
+  const placeGapBetweenLights = (light1: LightFixture, light2: LightFixture, gapPixels: number) => {
+    // Calculate direction vector between lights
+    const dx = light2.x - light1.x;
+    const dy = light2.y - light1.y;
+    const distance = Math.sqrt(dx * dx + dy * dy);
+    
+    if (distance === 0) return;
+    
+    // Normalize direction
+    const unitX = dx / distance;
+    const unitY = dy / distance;
+    
+    // Calculate new positions with gap
+    const totalDistance = distance + gapPixels;
+    const newLight2X = light1.x + unitX * totalDistance;
+    const newLight2Y = light1.y + unitY * totalDistance;
+    
+    // Update second light position
+    setLightFixtures(prev => prev.map(light => 
+      light.id === light2.id 
+        ? { ...light, x: newLight2X, y: newLight2Y, gapDistance: gapDistance, gapUnit: gapUnit }
+        : light
+    ));
+  };
+
+  const openGapDialog = () => {
+    if (selectedLights.size !== 2) {
+      alert('Please select exactly 2 lights to place a gap between them.');
+      return;
+    }
+    setShowGapDialog(true);
+  };
+
+  const applyGapPlacement = () => {
+    if (selectedLights.size !== 2) return;
+    
+    const selectedLightObjects = lightFixtures.filter(light => selectedLights.has(light.id));
+    if (selectedLightObjects.length !== 2) return;
+    
+    const gapPixels = convertGapToPixels(gapDistance, gapUnit);
+    placeGapBetweenLights(selectedLightObjects[0], selectedLightObjects[1], gapPixels);
+    
+    setShowGapDialog(false);
+    clearLightSelection();
+  };
+
+  // Double-click handler for linear light adjustment
+  const handleCanvasDoubleClick = (event: React.MouseEvent<HTMLCanvasElement>) => {
+    if (!canvasRef.current || !blueprintData) return;
+
+    const canvas = canvasRef.current;
+    const rect = canvas.getBoundingClientRect();
+    
+    const scaleX = canvas.width / rect.width;
+    const scaleY = canvas.height / rect.height;
+    
+    const x = (event.clientX - rect.left) * scaleX;
+    const y = (event.clientY - rect.top) * scaleY;
+
+    const canvasX = (x - panOffset.x) / zoom;
+    const canvasY = (y - panOffset.y) / zoom;
+
+    const bounds = calculateBlueprintBounds();
+    if (!bounds) return;
+
+    const padding = 100;
+    const availableWidth = canvas.width - padding * 2;
+    const availableHeight = canvas.height - padding * 2;
+    
+    const scale = Math.min(
+      availableWidth / bounds.width,
+      availableHeight / bounds.height
+    );
+
+    const offsetX = (canvas.width - bounds.width * scale) / 2 - bounds.minX * scale;
+    const offsetY = (canvas.height - bounds.height * scale) / 2 - bounds.minY * scale;
+
+    const blueprintX = (canvasX - offsetX) / scale;
+    const blueprintY = (canvasY - offsetY) / scale;
+
+    // Check if double-clicking on a linear light fixture
+    for (const light of lightFixtures) {
+      const distance = Math.sqrt(
+        Math.pow(blueprintX - light.x, 2) + Math.pow(blueprintY - light.y, 2)
+      );
+      if (distance <= 15 * (light.size || 1.0) && isLinearLight(light.type)) {
+        openLinearAdjustDialog(light);
+        break;
+      }
+    }
+  };
+
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-950 via-blue-950 to-slate-900 flex items-center justify-center">
+      <div className="min-h-screen premium-gradient-bg flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-cyan-400 mx-auto mb-4"></div>
-          <p className="premium-text text-cyan-300">Loading lighting design...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="premium-text text-primary">Loading lighting design...</p>
         </div>
       </div>
     );
@@ -2588,13 +2933,13 @@ export default function LightingPage() {
 
   if (!blueprintData) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-950 via-blue-950 to-slate-900 flex items-center justify-center">
+      <div className="min-h-screen premium-gradient-bg flex items-center justify-center">
         <div className="text-center space-y-4">
-          <Lightbulb className="h-16 w-16 text-red-400 mx-auto" />
-          <h1 className="premium-title text-red-300">No Blueprint Data Found</h1>
-          <p className="premium-text text-muted-foreground">Please create a blueprint first.</p>
+          <Lightbulb className="h-16 w-16 text-red-500 mx-auto" />
+          <h1 className="premium-title text-red-600">No Blueprint Data Found</h1>
+          <p className="premium-text">Please create a blueprint first.</p>
           <Link href="/enhancement">
-            <Button className="mt-4 neon-button">
+            <Button className="mt-4 warm-button">
               <ArrowLeft className="h-4 w-4 mr-2" />
               Back to Enhancement
             </Button>
@@ -2605,28 +2950,54 @@ export default function LightingPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-900">
+    <div className="min-h-screen premium-gradient-bg">
       {/* Header */}
-      <header className="bg-gray-800 shadow-sm border-b border-gray-700">
+      <header className="bg-card/80 shadow-sm border-b border-border backdrop-blur-xl warm-border">
         <div className="container mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
-              <Link href="/enhancement">
-                <Button variant="outline" size="sm" className="border-gray-600 hover:bg-gray-700 text-gray-300 hover:text-white">
-                  <ArrowLeft className="h-4 w-4 mr-2" />
-                  Back to Enhancement
-                </Button>
-              </Link>
-              <div>
-                <h1 className="text-xl font-semibold text-gray-100">
-                  Lighting Design
-                </h1>
-                <p className="text-sm text-gray-400">
-                  Design and visualize lighting for your floor plan
+              <div className="flex items-center space-x-3">
+                <Image
+                  src="/lightscapelogo.png"
+                  alt="Lightscape Logo"
+                  width={32}
+                  height={32}
+                  className="warm-glow"
+                />
+                <div className="flex flex-col">
+                  <h1 className="text-xl font-semibold warm-text text-primary">
+                    Belecure
+                  </h1>
+                  <p className="text-xs premium-text opacity-75">A Product of Lightscape</p>
+                </div>
+              </div>
+              <div className="border-l border-border pl-4">
+                <div className="flex items-center gap-2">
+                  <h2 className="text-lg font-medium warm-text">
+                    Lighting Design
+                  </h2>
+                  {isEditingProject && (
+                    <div className="flex items-center gap-1">
+                      <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                      <span className="text-xs text-blue-400 font-medium">EDITING</span>
+                    </div>
+                  )}
+                </div>
+                <p className="text-sm premium-text">
+                  {isEditingProject 
+                    ? `Editing: ${editingProjectName}`
+                    : 'Design and visualize lighting for your floor plan'
+                  }
                 </p>
               </div>
             </div>
-            <div className="flex space-x-2">
+            <div className="flex items-center space-x-3">
+              <Link href="/">
+                <Button variant="outline" size="sm" className="border-border hover:bg-muted text-foreground hover:text-primary warm-border">
+                  <ArrowLeft className="h-4 w-4 mr-2" />
+                  Back to Dashboard
+                </Button>
+              </Link>
               <Button
                 onClick={() => setIsBlueprintDragEnabled(!isBlueprintDragEnabled)}
                 variant={isBlueprintDragEnabled ? "default" : "outline"}
@@ -2788,6 +3159,118 @@ export default function LightingPage() {
           
           <div className="w-full h-px bg-gray-600 mx-4"></div>
           
+          {/* Group Selection and Advanced Controls */}
+          <div className="px-4 space-y-3">
+            <h4 className="text-xs font-medium text-gray-400 mb-2">ADVANCED CONTROLS</h4>
+            
+            {/* Group Selection Mode */}
+            <Button
+              variant={isGroupSelectionMode ? "default" : "ghost"}
+              size="sm"
+              className={`w-full ${
+                isGroupSelectionMode
+                  ? 'bg-orange-600 text-white hover:bg-orange-700'
+                  : 'bg-gray-700 hover:bg-gray-600 text-gray-300'
+              }`}
+              onClick={toggleGroupSelectionMode}
+            >
+              {isGroupSelectionMode ? 'Exit Group Mode' : 'Group Select'}
+            </Button>
+            
+            {/* Group Controls - Only show when in group selection mode */}
+            {isGroupSelectionMode && (
+              <div className="space-y-2">
+                <div className="flex space-x-2">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="flex-1 bg-gray-700 hover:bg-gray-600 text-gray-300 text-xs"
+                    onClick={selectAllLights}
+                  >
+                    Select All
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="flex-1 bg-gray-700 hover:bg-gray-600 text-gray-300 text-xs"
+                    onClick={clearLightSelection}
+                  >
+                    Clear
+                  </Button>
+                </div>
+                
+                {selectedLights.size > 0 && (
+                  <div className="space-y-2">
+                    <div className="text-xs text-gray-400 text-center">
+                      {selectedLights.size} light{selectedLights.size !== 1 ? 's' : ''} selected
+                    </div>
+                    
+                    <div className="flex space-x-2">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="flex-1 bg-blue-700 hover:bg-blue-600 text-white text-xs"
+                        onClick={duplicateSelectedLights}
+                      >
+                        Duplicate
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="flex-1 bg-red-700 hover:bg-red-600 text-white text-xs"
+                        onClick={deleteSelectedLights}
+                      >
+                        Delete
+                      </Button>
+                    </div>
+                    
+                    {selectedLights.size === 2 && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="w-full bg-green-700 hover:bg-green-600 text-white text-xs"
+                        onClick={openGapDialog}
+                      >
+                        Place Gap
+                      </Button>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
+            
+            {/* Move Mode Toggle */}
+            <Button
+              variant={isMoveModeEnabled ? "default" : "ghost"}
+              size="sm"
+              className={`w-full ${
+                isMoveModeEnabled
+                  ? 'bg-cyan-600 text-white hover:bg-cyan-700'
+                  : 'bg-gray-700 hover:bg-gray-600 text-gray-300'
+              }`}
+              onClick={() => setIsMoveModeEnabled(!isMoveModeEnabled)}
+            >
+              {isMoveModeEnabled ? 'Exit Move Mode' : 'Move Mode'}
+            </Button>
+            
+            {/* Clear Group Selection - for debugging */}
+            {selectedLights.size > 0 && !isGroupSelectionMode && (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="w-full bg-red-700 hover:bg-red-600 text-white text-xs"
+                onClick={() => {
+                  setSelectedLights(new Set());
+                  setLightFixtures(prev => prev.map(light => ({ ...light, isSelected: false })));
+                }}
+              >
+                Clear Group Selection ({selectedLights.size})
+              </Button>
+            )}
+          </div>
+          
+          <div className="w-full h-px bg-gray-600 mx-4"></div>
+          
           {/* Light Fixtures Grid */}
           <div className="px-4 flex-1 overflow-y-auto">
             <div className="grid grid-cols-2 gap-2">
@@ -2835,7 +3318,16 @@ export default function LightingPage() {
                 <div>
                   <h2 className="text-lg font-semibold text-gray-100">Lighting Design Canvas</h2>
                   <p className="text-sm text-gray-400">
-                    Click to place lights • {lightFixtures.length} fixtures placed
+                    {isGroupSelectionMode 
+                      ? `Group Selection Mode • ${selectedLights.size} selected • Click lights to select/deselect`
+                      : selectedLightType 
+                      ? 'Click to place light • Double-click linear lights to adjust length'
+                      : isMoveModeEnabled && selectedLights.size > 0
+                      ? `Move Mode • ${selectedLights.size} lights selected • Drag any selected light to move group`
+                      : isMoveModeEnabled 
+                      ? 'Move Mode • Drag individual lights to reposition'
+                      : `Click to place lights • ${lightFixtures.length} fixtures placed`
+                    }
                   </p>
                 </div>
                 <div className="flex items-center space-x-4">
@@ -2879,7 +3371,7 @@ export default function LightingPage() {
                 </div>
               </div>
             </div>
-            <div className="p-4 bg-gray-800">
+            <div className="p-4 bg-gray-800 canvas-night-mode">
               <canvas
                 ref={canvasRef}
                 width={CANVAS_WIDTH}
@@ -2894,6 +3386,7 @@ export default function LightingPage() {
                   handleCanvasMouseUp();
                   handleCanvasMouseUpForPan();
                 }}
+                onDoubleClick={handleCanvasDoubleClick}
                 className={`rounded-lg border border-gray-600 shadow-inner ${
                   isPanning ? 'cursor-grabbing' : 
                   isBlueprintDragEnabled ? 'cursor-grab' :
@@ -3245,6 +3738,200 @@ export default function LightingPage() {
           </div>
         </div>
       </main>
+      
+      {/* Footer */}
+      <footer className="py-3 text-center premium-text border-t border-border warm-border">
+        <div className="flex items-center justify-center space-x-2">
+          <Image
+            src="/lightscapelogo.png"
+            alt="Lightscape Logo"
+            width={16}
+            height={16}
+            className="opacity-75"
+          />
+          <span>© 2024 <span className="text-primary font-medium">Belecure</span> - A Product of <span className="text-primary font-medium">Lightscape</span>. All rights reserved.</span>
+        </div>
+      </footer>
+
+      {/* Project Name Dialog */}
+      <Dialog open={showSaveDialog} onOpenChange={setShowSaveDialog}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Save Your Lighting Project</DialogTitle>
+            <DialogDescription>
+              Give your lighting design a name and description to save it to your dashboard.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="project-name" className="text-right">
+                Name
+              </Label>
+              <Input
+                id="project-name"
+                value={projectName}
+                onChange={(e) => setProjectName(e.target.value)}
+                placeholder="e.g., Living Room Design"
+                className="col-span-3"
+                maxLength={100}
+              />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="project-description" className="text-right">
+                Description
+              </Label>
+              <Input
+                id="project-description"
+                value={projectDescription}
+                onChange={(e) => setProjectDescription(e.target.value)}
+                placeholder="Optional description..."
+                className="col-span-3"
+                maxLength={200}
+              />
+            </div>
+            <div className="text-sm text-muted-foreground px-4">
+              This project will have {lightFixtures.length} light fixture{lightFixtures.length !== 1 ? 's' : ''} and will be saved to your dashboard.
+            </div>
+          </div>
+          <DialogFooter>
+            <Button 
+              variant="outline" 
+              onClick={() => {
+                setShowSaveDialog(false);
+                setProjectName('');
+                setProjectDescription('');
+              }}
+            >
+              Cancel
+            </Button>
+            <Button 
+              onClick={handleSaveWithName}
+              disabled={isSaving || !projectName.trim()}
+            >
+              {isSaving ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Saving...
+                </>
+              ) : (
+                'Save Project'
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Linear Light Adjustment Dialog */}
+      <Dialog open={showLinearAdjustDialog} onOpenChange={setShowLinearAdjustDialog}>
+        <DialogContent className="bg-gray-800 border-gray-600">
+          <DialogHeader>
+            <DialogTitle className="text-gray-100">Adjust Linear Light Length</DialogTitle>
+            <DialogDescription className="text-gray-400">
+              {adjustingLight && `Adjusting ${lightTypes.find(t => t.type === adjustingLight.type)?.label || adjustingLight.type}`}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="linearLength" className="text-gray-300">Length (pixels)</Label>
+              <Input
+                id="linearLength"
+                type="number"
+                value={newLinearLength}
+                onChange={(e) => setNewLinearLength(Number(e.target.value))}
+                className="bg-gray-700 border-gray-600 text-gray-100"
+                min="10"
+                max="500"
+              />
+              <div className="text-xs text-gray-400 mt-1 space-y-1">
+                <p>Current length: {adjustingLight?.width || 50} pixels</p>
+                {blueprintData?.calibration?.pixelsPerInch && (
+                  <p>
+                    Real length: {((adjustingLight?.width || 50) / blueprintData.calibration.pixelsPerInch / 12).toFixed(2)} feet
+                  </p>
+                )}
+                {blueprintData?.calibration?.pixelsPerInch && (
+                  <p>
+                    New length: {(newLinearLength / blueprintData.calibration.pixelsPerInch / 12).toFixed(2)} feet
+                  </p>
+                )}
+              </div>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button 
+              variant="ghost" 
+              onClick={() => setShowLinearAdjustDialog(false)}
+              className="text-gray-400 hover:text-gray-200"
+            >
+              Cancel
+            </Button>
+            <Button 
+              onClick={applyLinearAdjustment}
+              className="bg-blue-600 hover:bg-blue-700 text-white"
+            >
+              Apply
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Gap Placement Dialog */}
+      <Dialog open={showGapDialog} onOpenChange={setShowGapDialog}>
+        <DialogContent className="bg-gray-800 border-gray-600">
+          <DialogHeader>
+            <DialogTitle className="text-gray-100">Place Gap Between Lights</DialogTitle>
+            <DialogDescription className="text-gray-400">
+              Set the distance between the selected lights using precise measurements
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="gapDistance" className="text-gray-300">Gap Distance</Label>
+              <Input
+                id="gapDistance"
+                type="number"
+                value={gapDistance}
+                onChange={(e) => setGapDistance(Number(e.target.value))}
+                className="bg-gray-700 border-gray-600 text-gray-100"
+                min="0.1"
+                step="0.1"
+              />
+            </div>
+            <div>
+              <Label htmlFor="gapUnit" className="text-gray-300">Unit</Label>
+              <select
+                id="gapUnit"
+                value={gapUnit}
+                onChange={(e) => setGapUnit(e.target.value as 'feet' | 'meters')}
+                className="w-full bg-gray-700 border border-gray-600 rounded-md px-3 py-2 text-gray-100"
+              >
+                <option value="feet">Feet</option>
+                <option value="meters">Meters</option>
+              </select>
+            </div>
+            {blueprintData?.calibration?.pixelsPerInch && (
+              <div className="text-xs text-gray-400">
+                Using calibrated measurements: {blueprintData.calibration.pixelsPerInch.toFixed(2)} pixels per inch
+              </div>
+            )}
+          </div>
+          <DialogFooter>
+            <Button 
+              variant="ghost" 
+              onClick={() => setShowGapDialog(false)}
+              className="text-gray-400 hover:text-gray-200"
+            >
+              Cancel
+            </Button>
+            <Button 
+              onClick={applyGapPlacement}
+              className="bg-green-600 hover:bg-green-700 text-white"
+            >
+              Apply Gap
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 } 

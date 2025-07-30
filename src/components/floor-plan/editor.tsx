@@ -1322,8 +1322,8 @@ export const FloorPlanEditor = forwardRef<{ exportBlueprintData: () => void }>((
       <div className="pt-0 px-0 pb-6">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div>
-                <h2 className="font-headline premium-title text-primary neon-text">Floor Plan Editor</h2>
-                <p className="premium-text text-muted-foreground">Upload your plan and draw walls with <span className="text-secondary font-medium">precision calibration</span>.</p>
+                <h2 className="font-headline premium-title warm-text">Floor Plan Editor</h2>
+                <p className="premium-text">Upload your plan and draw walls with <span className="text-secondary font-semibold">precision calibration</span>.</p>
             </div>
             <div className="flex items-center gap-2 flex-wrap">
                 <div className="flex items-center space-x-2">
@@ -1341,7 +1341,7 @@ export const FloorPlanEditor = forwardRef<{ exportBlueprintData: () => void }>((
                         id="unit-select"
                         value={measurementUnit} 
                         onChange={(e) => setMeasurementUnit(e.target.value as any)}
-                        className="px-2 py-1 border border-primary/30 rounded premium-text bg-background/80 backdrop-blur"
+                        className="px-3 py-2 border-2 border-primary rounded font-semibold bg-background text-primary focus:border-secondary focus:ring-2 focus:ring-secondary/20"
                     >
                         <option value="feet">Feet</option>
                         <option value="inches">Inches</option>
@@ -1350,33 +1350,33 @@ export const FloorPlanEditor = forwardRef<{ exportBlueprintData: () => void }>((
                     </select>
                 </div>
                 {selectedWallId && (
-                    <Button 
-                        variant="outline" 
-                        size="sm"
-                        onClick={() => setShowCalibrationDialog(true)}
-                        className="h-7 px-2 premium-text bg-green-500/20 border-green-400 text-green-300 hover:bg-green-500/30 hover:shadow-[0_0_12px_rgba(34,197,94,0.3)] transition-all duration-200"
-                    >
-                        <Ruler className="mr-1 h-3 w-3" /> Calibrate
-                    </Button>
+                                    <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => setShowCalibrationDialog(true)}
+                    className="h-8 px-3 visible-button bg-green-600 border-green-600 text-white hover:bg-green-700 hover:border-green-700"
+                >
+                    <Ruler className="mr-1 h-3 w-3" /> Calibrate
+                </Button>
                 )}
                 {calibration.pixelsPerInch > 0 && (
-                    <Button 
-                        variant="outline" 
-                        size="sm"
-                        onClick={exitScaleMode}
-                        className="h-7 px-2 premium-text bg-red-500/20 border-red-400 text-red-300 hover:bg-red-500/30 hover:shadow-[0_0_12px_rgba(239,68,68,0.3)] transition-all duration-200"
-                    >
-                        Exit Scale
-                    </Button>
+                                    <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={exitScaleMode}
+                    className="h-8 px-3 visible-button bg-red-600 border-red-600 text-white hover:bg-red-700 hover:border-red-700"
+                >
+                    Exit Scale
+                </Button>
                 )}
                 <Button 
                     variant="outline" 
                     size="sm"
                     onClick={() => setMoveWallsMode(!moveWallsMode)}
-                    className={`h-7 px-2 premium-text transition-all duration-200 ${
+                    className={`h-8 px-3 font-semibold transition-all duration-200 ${
                         moveWallsMode 
-                            ? 'bg-purple-500/20 border-purple-400 text-purple-300 hover:bg-purple-500/30 hover:shadow-[0_0_12px_rgba(147,51,234,0.3)]'
-                            : 'border-muted-foreground/30 hover:border-purple-400 hover:text-purple-300'
+                            ? 'bg-purple-600 border-purple-600 text-white hover:bg-purple-700 hover:border-purple-700'
+                            : 'outline-visible border-primary text-primary hover:bg-primary/10'
                     }`}
                 >
                     {moveWallsMode ? 'Exit Move' : 'Move Walls'}
@@ -1385,10 +1385,10 @@ export const FloorPlanEditor = forwardRef<{ exportBlueprintData: () => void }>((
                     variant="outline" 
                     size="sm"
                     onClick={() => setLabelingMode(!labelingMode)}
-                    className={`h-7 px-2 premium-text transition-all duration-200 ${
+                    className={`h-8 px-3 font-semibold transition-all duration-200 ${
                         labelingMode 
-                            ? 'bg-cyan-500/20 border-cyan-400 text-cyan-300 hover:bg-cyan-500/30 hover:shadow-[0_0_12px_rgba(6,182,212,0.3)]'
-                            : 'border-muted-foreground/30 hover:border-cyan-400 hover:text-cyan-300'
+                            ? 'bg-cyan-600 border-cyan-600 text-white hover:bg-cyan-700 hover:border-cyan-700'
+                            : 'outline-visible border-primary text-primary hover:bg-primary/10'
                     }`}
                 >
                     {labelingMode ? 'Exit Label' : 'Label Rooms'}
@@ -1398,7 +1398,7 @@ export const FloorPlanEditor = forwardRef<{ exportBlueprintData: () => void }>((
                         variant="outline" 
                         size="sm"
                         onClick={undoLastLabel}
-                        className="h-7 px-2 premium-text bg-orange-500/20 border-orange-400 text-orange-300 hover:bg-orange-500/30 hover:shadow-[0_0_12px_rgba(251,146,60,0.3)] transition-all duration-200"
+                        className="h-8 px-3 visible-button bg-orange-600 border-orange-600 text-white hover:bg-orange-700 hover:border-orange-700"
                     >
                         Undo Label
                     </Button>
@@ -1408,22 +1408,22 @@ export const FloorPlanEditor = forwardRef<{ exportBlueprintData: () => void }>((
                         variant="outline" 
                         size="sm"
                         onClick={() => rotateWall(selectedWallId)}
-                        className="h-7 px-2 premium-text bg-blue-500/20 border-blue-400 text-blue-300 hover:bg-blue-500/30 hover:shadow-[0_0_12px_rgba(59,130,246,0.3)] transition-all duration-200"
+                        className="h-8 px-3 visible-button bg-blue-600 border-blue-600 text-white hover:bg-blue-700 hover:border-blue-700"
                     >
                         Rotate
                     </Button>
                 )}
-                <Button variant="outline" size="sm" onClick={undoLastWall} disabled={walls.length === 0 || isProcessing} className="h-7 px-2 premium-text">
+                <Button variant="outline" size="sm" onClick={undoLastWall} disabled={walls.length === 0 || isProcessing} className="h-8 px-3 outline-visible">
                     <Undo className="mr-1 h-3 w-3" /> Undo
                 </Button>
-                <Button variant="destructive" size="sm" onClick={clearAllWalls} disabled={walls.length === 0 || isProcessing} className="h-7 px-2 premium-text">
+                <Button variant="destructive" size="sm" onClick={clearAllWalls} disabled={walls.length === 0 || isProcessing} className="h-8 px-3 bg-red-600 border-red-600 text-white hover:bg-red-700 font-semibold">
                     <Trash2 className="mr-1 h-3 w-3" /> Clear
                 </Button>
-                <Button onClick={handleAutoDetect} disabled={!image || isProcessing} size="sm" className="h-7 px-2 neon-button text-background">
+                <Button onClick={handleAutoDetect} disabled={!image || isProcessing} size="sm" className="h-8 px-3 warm-button">
                     {isProcessing ? <Loader2 className="mr-1 h-3 w-3 animate-spin" /> : <Wand2 className="mr-1 h-3 w-3" />}
                     Auto-detect
                 </Button>
-                <Button onClick={() => fileInputRef.current?.click()} disabled={isProcessing} size="sm" className="h-7 px-2 neon-button text-background">
+                <Button onClick={() => fileInputRef.current?.click()} disabled={isProcessing} size="sm" className="h-8 px-3 warm-button">
                     <UploadCloud className="mr-1 h-3 w-3" /> Upload
                 </Button>
                 {image && walls.length > 0 && (
