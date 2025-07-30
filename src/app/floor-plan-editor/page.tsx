@@ -30,7 +30,7 @@ export default function FloorPlanEditorPage() {
         </div>
       </main>
       <footer className="py-3 text-center premium-text border-t border-border warm-border">
-        © 2024 <span className="text-primary font-medium">Belecure</span> - A Product of <span className="text-primary font-medium">Lightscape</span>. All rights reserved.
+                    © 2025 <span className="text-primary font-medium">Belecure</span> - A Product of <span className="text-primary font-medium">Lightscape</span>. All rights reserved.
       </footer>
     </div>
   );

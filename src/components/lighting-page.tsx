@@ -3749,7 +3749,7 @@ export default function LightingPage() {
             height={16}
             className="opacity-75"
           />
-          <span>© 2024 <span className="text-primary font-medium">Belecure</span> - A Product of <span className="text-primary font-medium">Lightscape</span>. All rights reserved.</span>
+                          <span>© 2025 <span className="text-primary font-medium">Belecure</span> - A Product of <span className="text-primary font-medium">Lightscape</span>. All rights reserved.</span>
         </div>
       </footer>
 

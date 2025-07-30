@@ -2484,7 +2484,7 @@ export default function PreviewPage() {
                 className="opacity-75"
               />
               <p className="text-sm text-gray-600">
-                © 2024 <span className="text-blue-600 font-medium">Belecure</span> - A Product of <span className="text-purple-600 font-medium">Lightscape</span>. All rights reserved.
+                © 2025 <span className="text-blue-600 font-medium">Belecure</span> - A Product of <span className="text-purple-600 font-medium">Lightscape</span>. All rights reserved.
               </p>
             </div>
             <div className="text-xs text-gray-500">

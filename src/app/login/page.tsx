@@ -158,7 +158,7 @@ export default function LoginPage() {
         
         {/* Footer */}
         <div className="text-center mt-8 premium-text text-sm opacity-75">
-          © 2024 <span className="text-primary font-medium">Belecure</span> - A Product of <span className="text-primary font-medium">Lightscape</span>. All rights reserved.
+                      © 2025 <span className="text-primary font-medium">Belecure</span> - A Product of <span className="text-primary font-medium">Lightscape</span>. All rights reserved.
         </div>
       </div>
     </div>
